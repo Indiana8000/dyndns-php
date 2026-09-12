@@ -22,7 +22,7 @@ curl -u alice:secret "https://example.com/ddns.php?hostname=home.example.com&ip=
 Required input for an update request:
 
 - `hostname` as request parameter (FQDN, for example `sub.example.com`)
-- `ip` as request parameter (IPv4 address)
+- `ip` as request parameter (IPv4 address, optional when the caller IP should be used)
 - `username` and `password` either as request parameters or via HTTP Basic Auth
 
 If both request parameters and HTTP Basic Auth are sent, the request parameters take precedence.

@@ -61,7 +61,7 @@ try {
         new HttpClient()
     );
 
-    if (!$provider->update($hostname, $request->get('ip'))) {
+    if (!$provider->update($hostname, $request->getIpAddressForUpdate())) {
         $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: provider update failed');
         http_response_code(502);
         print 'FAIL';

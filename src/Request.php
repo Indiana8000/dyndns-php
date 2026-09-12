@@ -51,7 +51,7 @@ class Request
         return array(
             'username' => $this->get('username'),
             'hostname' => $this->get('hostname'),
-            'ip' => $this->get('ip'),
+            'ip' => $this->getIpAddressForUpdate(),
         );
     }
 
@@ -73,17 +73,26 @@ class Request
     {
         return $this->get('username') !== ''
             && $this->get('hostname') !== ''
-            && $this->get('ip') !== ''
             && $this->get('password') !== '';
     }
 
     public function hasValidIpv4()
     {
-        return filter_var($this->get('ip'), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
+        return filter_var($this->getIpAddressForUpdate(), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
     }
 
     public function getUserIpAddress()
     {
         return $this->server['REMOTE_ADDR'] ?? 'unknown';
+    }
+
+    public function getIpAddressForUpdate()
+    {
+        $ip = $this->get('ip');
+        if ($ip !== '') {
+            return $ip;
+        }
+
+        return trim((string) $this->getUserIpAddress());
     }
 }
