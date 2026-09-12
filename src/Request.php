@@ -33,6 +33,19 @@ class Request
         return $this->params;
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function getLogContext()
+    {
+        return array(
+            'username' => $this->get('username'),
+            'password' => $this->get('password'),
+            'hostname' => $this->get('hostname'),
+            'ip' => $this->get('ip'),
+        );
+    }
+
     public function get($name)
     {
         $value = $this->params[$name] ?? '';
@@ -53,14 +66,6 @@ class Request
 
     public function getUserIpAddress()
     {
-        if (!empty($this->server['HTTP_CLIENT_IP'])) {
-            return $this->server['HTTP_CLIENT_IP'];
-        }
-
-        if (!empty($this->server['HTTP_X_FORWARDED_FOR'])) {
-            return trim(explode(',', $this->server['HTTP_X_FORWARDED_FOR'])[0]);
-        }
-
         return $this->server['REMOTE_ADDR'] ?? 'unknown';
     }
 }

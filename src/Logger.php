@@ -17,8 +17,11 @@ class Logger
      */
     public function logRequest(array $params, $ipAddress, $extra = '')
     {
-        if (isset($params['password'])) {
-            $params['password'] = '***';
+        $sensitiveKeys = array('password', 'php_auth_pw', 'authorization', 'http_authorization');
+        foreach ($params as $key => $value) {
+            if (in_array(strtolower((string) $key), $sensitiveKeys, true)) {
+                $params[$key] = '***';
+            }
         }
 
         $message = date('c') . ' - ' . $ipAddress . ' - ' . http_build_query($params, '', ' / ');

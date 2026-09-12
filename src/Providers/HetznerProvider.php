@@ -4,6 +4,9 @@ namespace Dyndns\Providers;
 
 class HetznerProvider extends AbstractProvider
 {
+    /** @var string */
+    private $baseUrl = 'https://dns.hetzner.com/api/v1';
+
     public function update($hostname, $ip)
     {
         $zoneId = $this->getZoneId();
@@ -21,27 +24,59 @@ class HetznerProvider extends AbstractProvider
 
     private function getZoneId()
     {
-        $response = $this->hetznerRequest('GET', 'https://api.hetzner.cloud/v1/zones?name=' . urlencode($this->domain));
+        $response = $this->hetznerRequest('GET', $this->baseUrl . '/zones');
         $data = json_decode($response['body'], true);
 
-        return $data['zones'][0]['id'] ?? false;
+        foreach (($data['zones'] ?? array()) as $zone) {
+            if (($zone['name'] ?? null) === $this->domain) {
+                return $zone['id'] ?? false;
+            }
+        }
+
+        return false;
     }
 
     private function rrsetExists($zoneId, $name)
     {
-        $response = $this->hetznerRequest('GET', 'https://api.hetzner.cloud/v1/zones/' . urlencode($zoneId) . '/rrsets/' . urlencode($name) . '/A');
-        return $response['code'] === 200;
+        return $this->getRecord($zoneId, $name) !== null;
     }
 
     private function setRrsetRecords($zoneId, $name, $ip)
     {
-        $body = json_encode(array(
-            'records' => array(array('value' => $ip, 'comment' => '')),
-        ));
-        $url = 'https://api.hetzner.cloud/v1/zones/' . urlencode($zoneId) . '/rrsets/' . urlencode($name) . '/A/actions/set_records';
-        $response = $this->hetznerRequest('POST', $url, $body);
+        $record = $this->getRecord($zoneId, $name);
+        if ($record === null || empty($record['id'])) {
+            return false;
+        }
 
-        return $response['code'] === 201;
+        $body = json_encode(array(
+            'zone_id' => $zoneId,
+            'type' => 'A',
+            'name' => $name === '@' ? '' : $name,
+            'value' => $ip,
+            'ttl' => $record['ttl'] ?? 60,
+        ));
+        $url = $this->baseUrl . '/records/' . urlencode($record['id']);
+        $response = $this->hetznerRequest('PUT', $url, $body);
+
+        return $response['code'] >= 200 && $response['code'] < 300;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function getRecord($zoneId, $name)
+    {
+        $response = $this->hetznerRequest('GET', $this->baseUrl . '/records?zone_id=' . urlencode($zoneId));
+        $data = json_decode($response['body'], true);
+        $expectedName = $name === '@' ? '' : $name;
+
+        foreach (($data['records'] ?? array()) as $record) {
+            if (($record['type'] ?? null) === 'A' && ($record['name'] ?? null) === $expectedName) {
+                return $record;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -54,7 +89,7 @@ class HetznerProvider extends AbstractProvider
             $url,
             array(
                 'Content-Type: application/json',
-                'Authorization: Bearer ' . $this->requireConfigValue('api_token'),
+                'Auth-API-Token: ' . $this->requireConfigValue('api_token'),
             ),
             $body
         );

@@ -12,7 +12,10 @@ A simple PHP-based self-hosted DynDNS solution that updates DNS records via host
 Example request:
 
 ```text
-/ddns.php?username=myuser&******
+/ddns.php?username=alice
+&******
+&hostname=home.example.com
+&ip=203.0.113.10
 ```
 
 `hostname` must be the full FQDN. The matching domain entry in `config.php` or `config.dist.php` decides which provider implementation is used.

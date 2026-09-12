@@ -20,6 +20,9 @@ class AutoDnsProvider extends AbstractProvider
             $zone['main']['address'] = $ip;
         } else {
             $zone = $this->updateZone($zone, $relativeHostname, $ip);
+            if ($zone === null) {
+                return false;
+            }
         }
 
         return $this->putZone($zone);
@@ -38,19 +41,18 @@ class AutoDnsProvider extends AbstractProvider
 
     /**
      * @param array<string, mixed> $zone
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      */
     private function updateZone(array $zone, $hostname, $ip)
     {
-        $records = $zone['resourceRecords'] ?? array();
-        $index = array_flip(array_column($records, 'name'));
-        $hostnameId = $index[$hostname] ?? false;
-
-        if ($hostnameId !== false) {
-            $zone['resourceRecords'][$hostnameId]['value'] = $ip;
+        foreach (($zone['resourceRecords'] ?? array()) as $index => $record) {
+            if (($record['name'] ?? null) === $hostname && ($record['type'] ?? null) === 'A') {
+                $zone['resourceRecords'][$index]['value'] = $ip;
+                return $zone;
+            }
         }
 
-        return $zone;
+        return null;
     }
 
     /**
