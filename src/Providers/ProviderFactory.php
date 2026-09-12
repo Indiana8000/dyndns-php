@@ -11,8 +11,12 @@ class ProviderFactory
     /**
      * @param array<string, mixed> $config
      */
-    public static function create($providerName, $domain, array $config, Logger $logger, HttpRequestInterface $httpRequest)
+    public static function create($providerName, $domain, array $config, Logger $logger, $httpRequest)
     {
+        if (!$httpRequest instanceof HttpRequestInterface) {
+            throw new InvalidArgumentException('Invalid HTTP request handler');
+        }
+
         if (
             is_string($providerName)
             && class_exists($providerName)
