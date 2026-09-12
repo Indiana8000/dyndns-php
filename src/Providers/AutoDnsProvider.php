@@ -60,8 +60,8 @@ class AutoDnsProvider extends AbstractProvider
      */
     private function putZone(array $zone)
     {
+        unset($zone['purgeType']);
         $body = json_encode($zone);
-        $body = str_replace(',"purgeType":"AUTO"', '', $body);
         $response = $this->autoDnsRequest('PUT', 'https://api.autodns.com/v1/zone/' . $this->domain, $body);
 
         return $response['code'] >= 200 && $response['code'] < 300;
