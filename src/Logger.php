@@ -32,6 +32,6 @@ class Logger
             $message .= ' - ' . $extra;
         }
 
-        file_put_contents($this->filePath, $message . PHP_EOL, FILE_APPEND);
+        file_put_contents($this->filePath, $message . PHP_EOL, FILE_APPEND | LOCK_EX);
     }
 }

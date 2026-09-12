@@ -59,6 +59,10 @@ class Config
             }
 
             $normalizedDomain = self::normalizeHostname($domain);
+            if ($normalizedDomain === '') {
+                continue;
+            }
+
             if ($hostname !== $normalizedDomain && substr($hostname, -strlen('.' . $normalizedDomain)) !== '.' . $normalizedDomain) {
                 continue;
             }

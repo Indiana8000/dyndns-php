@@ -27,6 +27,8 @@ Expected query parameters:
 - `hostname` (FQDN, for example `sub.example.com`)
 - `ip` (IPv4 address)
 
+`username` and `password` can also be supplied via HTTP Basic Auth instead of query parameters.
+
 ## Configuration
 
 Copy `config.dist.php` to `config.php` and fill in your provider credentials.
