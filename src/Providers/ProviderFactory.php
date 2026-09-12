@@ -16,10 +16,7 @@ class ProviderFactory
         if (
             is_string($providerName)
             && class_exists($providerName)
-            && (
-                is_subclass_of($providerName, ProviderInterface::class)
-                || is_subclass_of($providerName, AbstractProvider::class)
-            )
+            && is_subclass_of($providerName, ProviderInterface::class)
         ) {
             return new $providerName($domain, $config, $logger, $httpRequest);
         }

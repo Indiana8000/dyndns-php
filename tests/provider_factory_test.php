@@ -60,6 +60,9 @@ assertInstanceOf(AutoDnsProvider::class, $legacyAutoDns, 'autodns should remain 
 $legacyAutoDnsWithContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 10), $logger, $httpRequest);
 assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithContext, 'autodns should continue to resolve to the legacy AutoDnsProvider wrapper.');
 
+$legacyAutoDnsWithInternetXContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 4), $logger, $httpRequest);
+assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithInternetXContext, 'Legacy autodns configs should still accept the historical InternetX context override.');
+
 $legacyHttpClient = ProviderFactory::create('internetx', 'example.com', $config, $logger, new HttpClient());
 assertInstanceOf(InternetX::class, $legacyHttpClient, 'Legacy HttpClient instances should remain accepted.');
 
@@ -92,6 +95,19 @@ $legacyAutoDnsContextMethod = new ReflectionMethod(AutoDnsProvider::class, 'getC
 $legacyAutoDnsContextMethod->setAccessible(true);
 assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDns), 'Legacy autodns configs should default to the legacy AutoDNS context.');
 assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithContext), 'Legacy autodns configs should continue honoring explicit context values.');
+assertSame(4, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithInternetXContext), 'Legacy autodns configs should allow the historical InternetX context override.');
+
+assertThrows(
+    static function () use ($config, $logger, $httpRequest): void {
+        $provider = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 99), $logger, $httpRequest);
+        $contextMethod = new ReflectionMethod(AutoDnsProvider::class, 'getContextId');
+        $contextMethod->setAccessible(true);
+        $contextMethod->invoke($provider);
+    },
+    RuntimeException::class,
+    'Unsupported legacy autodns context: 99',
+    'Legacy autodns should reject unsupported context overrides.'
+);
 
 $schlundTechContextMethod = new ReflectionMethod(SchlundTech::class, 'getContextId');
 $schlundTechContextMethod->setAccessible(true);
