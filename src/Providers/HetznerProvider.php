@@ -17,16 +17,17 @@ class HetznerProvider extends AbstractProvider
         }
 
         $recordName = $this->getRelativeHostname($hostname);
+        $recordType = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? 'AAAA' : 'A';
         if ($recordName === null) {
             return false;
         }
 
-        $record = $this->getRecord($zoneId, $recordName);
+        $record = $this->getRecord($zoneId, $recordName, $recordType);
         if ($record === null) {
             return false;
         }
 
-        return $this->setRrsetRecords($zoneId, $record, $recordName, $ip);
+        return $this->setRrsetRecords($zoneId, $record, $recordName, $recordType, $ip);
     }
 
     private function getZoneId()
@@ -50,7 +51,7 @@ class HetznerProvider extends AbstractProvider
     /**
      * @param array<string, mixed> $record
      */
-    private function setRrsetRecords($zoneId, array $record, $name, $ip)
+    private function setRrsetRecords($zoneId, array $record, $name, $recordType, $ip)
     {
         if (empty($record['id'])) {
             return false;
@@ -58,7 +59,7 @@ class HetznerProvider extends AbstractProvider
 
         $body = json_encode(array(
             'zone_id' => $zoneId,
-            'type' => 'A',
+            'type' => $recordType,
             'name' => $name === '@' ? '' : $name,
             'value' => $ip,
             'ttl' => $record['ttl'] ?? 60,
@@ -72,7 +73,7 @@ class HetznerProvider extends AbstractProvider
     /**
      * @return array<string, mixed>|null
      */
-    private function getRecord($zoneId, $name)
+    private function getRecord($zoneId, $name, $recordType)
     {
         $response = $this->hetznerRequest('GET', $this->baseUrl . '/records?zone_id=' . urlencode($zoneId));
         if ($response['code'] < 200 || $response['code'] >= 300) {
@@ -83,7 +84,7 @@ class HetznerProvider extends AbstractProvider
         $expectedName = $name === '@' ? '' : $name;
 
         foreach (($data['records'] ?? array()) as $record) {
-            if (($record['type'] ?? null) === 'A' && ($record['name'] ?? null) === $expectedName) {
+            if (($record['type'] ?? null) === $recordType && ($record['name'] ?? null) === $expectedName) {
                 return $record;
             }
         }

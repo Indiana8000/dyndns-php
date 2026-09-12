@@ -13,6 +13,10 @@ class ProviderFactory
      */
     public static function create($providerName, $domain, array $config, Logger $logger, HttpClient $httpClient)
     {
+        if (is_string($providerName) && class_exists($providerName) && is_subclass_of($providerName, ProviderInterface::class)) {
+            return new $providerName($domain, $config, $logger, $httpClient);
+        }
+
         switch (strtolower((string) $providerName)) {
             case 'hetzner':
                 return new HetznerProvider($domain, $config, $logger, $httpClient);

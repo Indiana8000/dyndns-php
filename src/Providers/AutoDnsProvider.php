@@ -12,17 +12,14 @@ class AutoDnsProvider extends AbstractProvider
         }
 
         $relativeHostname = $this->getRelativeHostname($hostname);
+        $recordType = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? 'AAAA' : 'A';
         if ($relativeHostname === null) {
             return false;
         }
 
-        if ($relativeHostname === '@') {
-            $zone['main']['address'] = $ip;
-        } else {
-            $zone = $this->updateZone($zone, $relativeHostname, $ip);
-            if ($zone === null) {
-                return false;
-            }
+        $zone = $this->updateZone($zone, $relativeHostname, $recordType, $ip);
+        if ($zone === null) {
+            return false;
         }
 
         return $this->putZone($zone);
@@ -59,16 +56,25 @@ class AutoDnsProvider extends AbstractProvider
      * @param array<string, mixed> $zone
      * @return array<string, mixed>|null
      */
-    private function updateZone(array $zone, $hostname, $ip)
+    private function updateZone(array $zone, $hostname, $recordType, $ip)
     {
+        $updated = false;
+
+        if ($hostname === '@' && $recordType === 'A' && isset($zone['main']) && is_array($zone['main'])) {
+            $zone['main']['address'] = $ip;
+            $updated = true;
+        }
+
         foreach (($zone['resourceRecords'] ?? array()) as $index => $record) {
-            if (($record['name'] ?? null) === $hostname && ($record['type'] ?? null) === 'A') {
+            $recordName = $record['name'] ?? null;
+            $matchesRoot = $hostname === '@' && ($recordName === '' || $recordName === '@');
+            if (($matchesRoot || $recordName === $hostname) && ($record['type'] ?? null) === $recordType) {
                 $zone['resourceRecords'][$index]['value'] = $ip;
-                return $zone;
+                $updated = true;
             }
         }
 
-        return null;
+        return $updated ? $zone : null;
     }
 
     /**

@@ -56,7 +56,10 @@ if (!$isCli) {
     <button type="submit">Hash erzeugen</button>
 </form>
 <?php if ($hash !== null): ?>
-<pre><?= htmlspecialchars($hash, ENT_QUOTES, 'UTF-8') ?></pre>
+<div role="status" aria-live="polite" aria-labelledby="hash-result-label">
+    <p id="hash-result-label">Generierter Passwort-Hash</p>
+    <pre><?= htmlspecialchars($hash, ENT_QUOTES, 'UTF-8') ?></pre>
+</div>
 <?php endif; ?>
 </body>
 </html>

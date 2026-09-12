@@ -22,11 +22,12 @@ curl -u alice:secret "https://example.com/ddns.php?hostname=home.example.com&ip=
 Required input for an update request:
 
 - `hostname` as request parameter (FQDN, for example `sub.example.com`)
-- `ip` as request parameter (IPv4 address only, optional only when `ip_fallback.allow_remote_addr` is enabled because the endpoint then substitutes `REMOTE_ADDR` before validation)
+- `ip` as request parameter (IPv4 or IPv6, optional only when `ip_fallback.allow_remote_addr` is enabled because the endpoint then substitutes `REMOTE_ADDR` before validation)
 - `username` and `password` either as request parameters or via HTTP Basic Auth
 
 If both request parameters and HTTP Basic Auth are sent, the request parameters take precedence.
 If `ip` is omitted, PHP must receive the real client IPv4 address in `REMOTE_ADDR` from trusted server/proxy configuration. Do not enable this fallback behind reverse proxies or load balancers unless they rewrite `REMOTE_ADDR` safely.
+The endpoint updates `A` or `AAAA` records based on the IP version that is provided.
 
 ## Configuration
 

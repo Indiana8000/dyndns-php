@@ -26,10 +26,10 @@ if (!$request->isUpdateRequest()) {
     $statusCode = 400;
     $responseBody = 'FAIL';
     $logMessage = 'ERROR: missing required parameters';
-} elseif (filter_var($resolvedIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
+} elseif (filter_var($resolvedIp, FILTER_VALIDATE_IP) === false) {
     $statusCode = 400;
     $responseBody = 'FAIL';
-    $logMessage = 'ERROR: invalid IPv4 address';
+    $logMessage = 'ERROR: invalid IP address';
 } else {
     $hostname = Config::normalizeHostname($request->get('hostname'));
     $domainMatch = $config->resolveDomain($hostname);
