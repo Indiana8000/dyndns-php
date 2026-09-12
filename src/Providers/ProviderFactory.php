@@ -13,7 +13,14 @@ class ProviderFactory
      */
     public static function create($providerName, $domain, array $config, Logger $logger, HttpRequestInterface $httpRequest)
     {
-        if (is_string($providerName) && class_exists($providerName) && is_subclass_of($providerName, ProviderInterface::class)) {
+        if (
+            is_string($providerName)
+            && class_exists($providerName)
+            && (
+                is_subclass_of($providerName, ProviderInterface::class)
+                || is_subclass_of($providerName, AbstractProvider::class)
+            )
+        ) {
             return new $providerName($domain, $config, $logger, $httpRequest);
         }
 
