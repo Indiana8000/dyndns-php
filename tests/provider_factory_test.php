@@ -115,6 +115,18 @@ assertThrows(
     'Legacy autodns should reject unsupported context overrides.'
 );
 
+assertThrows(
+    static function () use ($config, $logger, $httpRequest): void {
+        $provider = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 'foo'), $logger, $httpRequest);
+        $contextMethod = new ReflectionMethod(AutoDnsProvider::class, 'getContextId');
+        $contextMethod->setAccessible(true);
+        $contextMethod->invoke($provider);
+    },
+    RuntimeException::class,
+    'Unsupported legacy autodns context: foo',
+    'Legacy autodns should reject non-numeric context overrides without coercing them.'
+);
+
 $schlundTechContextMethod = new ReflectionMethod(SchlundTech::class, 'getContextId');
 $schlundTechContextMethod->setAccessible(true);
 assertSame(10, $schlundTechContextMethod->invoke($schlundTech), 'SchlundTech should use context 10 internally.');
