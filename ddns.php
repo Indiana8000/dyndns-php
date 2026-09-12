@@ -3,7 +3,7 @@
 require_once __DIR__ . '/src/Autoloader.php';
 
 use Dyndns\Config;
-use Dyndns\HttpClient;
+use Dyndns\HttpRequest;
 use Dyndns\Logger;
 use Dyndns\Request;
 use Dyndns\Providers\ProviderFactory;
@@ -54,7 +54,7 @@ if (!$request->isUpdateRequest()) {
                     $domainMatch['domain'],
                     $domainMatch['config'],
                     $logger,
-                    new HttpClient()
+                    new HttpRequest()
                 );
 
                 if (!$provider->update($hostname, $resolvedIp)) {

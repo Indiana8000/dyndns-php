@@ -2,107 +2,24 @@
 
 namespace Dyndns\Providers;
 
-class AutoDnsProvider extends AbstractProvider
+use RuntimeException;
+
+class AutoDnsProvider extends InternetX implements ProviderInterface
 {
-    public function update($hostname, $ip)
+    protected function getContextId()
     {
-        $zone = $this->getZone();
-        if ($zone === null) {
-            return false;
-        }
-
-        $relativeHostname = $this->getRelativeHostname($hostname);
-        $recordType = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? 'AAAA' : 'A';
-        if ($relativeHostname === null) {
-            return false;
-        }
-
-        $zone = $this->updateZone($zone, $relativeHostname, $recordType, $ip);
-        if ($zone === null) {
-            return false;
-        }
-
-        return $this->putZone($zone);
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function getZone()
-    {
-        $response = $this->autoDnsRequest('GET', 'https://api.autodns.com/v1/zone/' . $this->domain);
-        if ($response['code'] < 200 || $response['code'] >= 300) {
-            return null;
-        }
-
-        $data = json_decode($response['body'], true);
-
-        if (isset($data['data'][0]) && is_array($data['data'][0]) && isset($data['data'][0]['resourceRecords'])) {
-            return $data['data'][0];
-        }
-
-        if (isset($data['data']) && is_array($data['data']) && isset($data['data']['resourceRecords'])) {
-            return $data['data'];
-        }
-
-        if (is_array($data) && isset($data['resourceRecords'])) {
-            return $data;
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array<string, mixed> $zone
-     * @return array<string, mixed>|null
-     */
-    private function updateZone(array $zone, $hostname, $recordType, $ip)
-    {
-        $updated = false;
-
-        if ($hostname === '@' && $recordType === 'A' && isset($zone['main']) && is_array($zone['main'])) {
-            $zone['main']['address'] = $ip;
-            $updated = true;
-        }
-
-        foreach (($zone['resourceRecords'] ?? array()) as $index => $record) {
-            $recordName = $record['name'] ?? null;
-            $matchesRoot = $hostname === '@' && ($recordName === '' || $recordName === '@');
-            if (($matchesRoot || $recordName === $hostname) && ($record['type'] ?? null) === $recordType) {
-                $zone['resourceRecords'][$index]['value'] = $ip;
-                $updated = true;
+        if (isset($this->config['context']) && $this->config['context'] !== '') {
+            $rawContext = $this->config['context'];
+            if (is_int($rawContext) || (is_string($rawContext) && preg_match('/^[0-9]+$/', $rawContext) === 1)) {
+                $normalizedContext = (int) $rawContext;
+                if (in_array($normalizedContext, array(4, 10), true)) {
+                    return $normalizedContext;
+                }
             }
+
+            throw new RuntimeException('Unsupported legacy autodns context: ' . $rawContext);
         }
 
-        return $updated ? $zone : null;
-    }
-
-    /**
-     * @param array<string, mixed> $zone
-     */
-    private function putZone(array $zone)
-    {
-        unset($zone['purgeType']);
-        $body = json_encode($zone);
-        $response = $this->autoDnsRequest('PUT', 'https://api.autodns.com/v1/zone/' . $this->domain, $body);
-
-        return $response['code'] >= 200 && $response['code'] < 300;
-    }
-
-    /**
-     * @return array{code:int,body:string}
-     */
-    private function autoDnsRequest($method, $url, $body = null)
-    {
-        return $this->httpClient->request(
-            $method,
-            $url,
-            array(
-                'Content-Type: application/json',
-                'Authorization: Basic ' . $this->requireConfigValue('api_token'),
-                'X-Domainrobot-Context: ' . (string) $this->requireConfigValue('context'),
-            ),
-            $body
-        );
+        return 10;
     }
 }

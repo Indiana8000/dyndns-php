@@ -10,23 +10,32 @@ return array(
     ),
     'domains' => array(
         'example.com' => array(
-            'provider' => 'hetzner',
-            'api_token' => 'YOUR_HETZNER_API_TOKEN',
+            'provider' => 'schlundtech',
+            'api_token' => 'BASE64_ENCODED_USERNAME_PASSWORD',
             'accounts' => array(
                 'user1' => array(
                     'password_hash' => '$2y$10$REPLACE_WITH_GENERATED_HASH',
-                    'hostnames' => array('sub1.example.com', 'sub2', '@'),
+                    'hostnames' => array('sub1', 'sub2', '@'),
                 ),
             ),
         ),
         'another.com' => array(
-            'provider' => 'autodns',
+            'provider' => 'internetx',
             'api_token' => 'BASE64_ENCODED_USERNAME_PASSWORD',
-            'context' => 10,
             'accounts' => array(
                 'user2' => array(
                     'password_hash' => '$2y$10$REPLACE_WITH_GENERATED_HASH',
-                    'hostnames' => array('home.another.com', 'office'),
+                    'hostnames' => array('home', 'office'),
+                ),
+            ),
+        ),
+        'hetzner.com' => array(
+            'provider' => 'hetzner',
+            'api_token' => 'YOUR_HETZNER_API_TOKEN',
+            'accounts' => array(
+                'user3' => array(
+                    'password_hash' => '$2y$10$REPLACE_WITH_GENERATED_HASH',
+                    'hostnames' => array('vpn', '@'),
                 ),
             ),
         ),

@@ -3,7 +3,7 @@
 namespace Dyndns\Providers;
 
 use Dyndns\Config;
-use Dyndns\HttpClient;
+use Dyndns\HttpRequestInterface;
 use Dyndns\Logger;
 use RuntimeException;
 
@@ -18,18 +18,18 @@ abstract class AbstractProvider implements ProviderInterface
     /** @var Logger */
     protected $logger;
 
-    /** @var HttpClient */
-    protected $httpClient;
+    /** @var HttpRequestInterface */
+    protected $httpRequest;
 
     /**
      * @param array<string, mixed> $config
      */
-    public function __construct($domain, array $config, Logger $logger, HttpClient $httpClient)
+    public function __construct($domain, array $config, Logger $logger, HttpRequestInterface $httpRequest)
     {
         $this->domain = $domain;
         $this->config = $config;
         $this->logger = $logger;
-        $this->httpClient = $httpClient;
+        $this->httpRequest = $httpRequest;
     }
 
     protected function getRelativeHostname($hostname)
@@ -44,5 +44,15 @@ abstract class AbstractProvider implements ProviderInterface
         }
 
         return $this->config[$key];
+    }
+
+    protected function encodeJson($value, $errorContext)
+    {
+        $encoded = json_encode($value);
+        if ($encoded === false) {
+            throw new RuntimeException('Failed to encode ' . $errorContext . ': ' . json_last_error_msg());
+        }
+
+        return $encoded;
     }
 }
