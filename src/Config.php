@@ -50,6 +50,11 @@ class Config
         return !empty($this->config['hash_generator']['enabled']);
     }
 
+    public function allowsRemoteAddrFallback()
+    {
+        return !empty($this->config['ip_fallback']['allow_remote_addr']);
+    }
+
     /**
      * @return array{domain:string,config:array<string,mixed>}|null
      */

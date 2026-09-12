@@ -13,6 +13,10 @@ class HttpClient
     public function request($method, $url, array $headers = array(), $body = null)
     {
         $ch = curl_init();
+        if ($ch === false) {
+            throw new RuntimeException('Unable to initialize cURL');
+        }
+
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);

@@ -17,15 +17,7 @@ class Logger
      */
     public function logRequest(array $params, $ipAddress, $extra = '')
     {
-        $sensitiveKeys = array('password', 'php_auth_pw', 'authorization', 'http_authorization');
-        foreach ($params as $key => $value) {
-            if (in_array(strtolower((string) $key), $sensitiveKeys, true)) {
-                $params[$key] = '***';
-                continue;
-            }
-
-            $params[$key] = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', is_scalar($value) ? (string) $value : json_encode($value));
-        }
+        $params = $this->sanitizeParams($params);
 
         $message = date('c') . ' - ' . $ipAddress . ' - ' . http_build_query($params, '', ' / ');
         if ($extra !== '') {
@@ -33,5 +25,42 @@ class Logger
         }
 
         file_put_contents($this->filePath, $message . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    private function sanitizeParams(array $params)
+    {
+        $sanitized = array();
+        foreach ($params as $key => $value) {
+            $sanitized[$key] = $this->sanitizeValue((string) $key, $value);
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
+    private function sanitizeValue($key, $value)
+    {
+        $sensitiveKeys = array('password', 'php_auth_pw', 'authorization', 'http_authorization');
+        if (in_array(strtolower($key), $sensitiveKeys, true)) {
+            return '***';
+        }
+
+        if (is_array($value)) {
+            $sanitized = array();
+            foreach ($value as $childKey => $childValue) {
+                $sanitized[$childKey] = $this->sanitizeValue((string) $childKey, $childValue);
+            }
+
+            return $sanitized;
+        }
+
+        return preg_replace('/[\x00-\x1F\x7F]+/u', ' ', is_scalar($value) ? (string) $value : json_encode($value));
     }
 }

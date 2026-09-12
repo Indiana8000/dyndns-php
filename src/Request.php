@@ -51,7 +51,7 @@ class Request
         return array(
             'username' => $this->get('username'),
             'hostname' => $this->get('hostname'),
-            'ip' => $this->getIpAddressForUpdate(),
+            'ip' => $this->get('ip'),
         );
     }
 
@@ -78,7 +78,7 @@ class Request
 
     public function hasValidIpv4()
     {
-        return filter_var($this->getIpAddressForUpdate(), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
+        return filter_var($this->get('ip'), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
     }
 
     public function getUserIpAddress()
@@ -88,11 +88,6 @@ class Request
 
     public function getIpAddressForUpdate()
     {
-        $ip = $this->get('ip');
-        if ($ip !== '') {
-            return $ip;
-        }
-
-        return trim((string) $this->getUserIpAddress());
+        return $this->get('ip');
     }
 }

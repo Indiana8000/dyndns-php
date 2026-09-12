@@ -34,17 +34,25 @@ class AutoDnsProvider extends AbstractProvider
     private function getZone()
     {
         $response = $this->autoDnsRequest('GET', 'https://api.autodns.com/v1/zone/' . $this->domain);
+        if ($response['code'] < 200 || $response['code'] >= 300) {
+            return null;
+        }
+
         $data = json_decode($response['body'], true);
 
-        if (isset($data['data'][0]) && is_array($data['data'][0])) {
+        if (isset($data['data'][0]) && is_array($data['data'][0]) && isset($data['data'][0]['resourceRecords'])) {
             return $data['data'][0];
         }
 
-        if (isset($data['data']) && is_array($data['data'])) {
+        if (isset($data['data']) && is_array($data['data']) && isset($data['data']['resourceRecords'])) {
             return $data['data'];
         }
 
-        return is_array($data) ? $data : null;
+        if (is_array($data) && isset($data['resourceRecords'])) {
+            return $data;
+        }
+
+        return null;
     }
 
     /**

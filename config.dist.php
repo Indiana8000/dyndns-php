@@ -5,6 +5,9 @@ return array(
     'hash_generator' => array(
         'enabled' => false,
     ),
+    'ip_fallback' => array(
+        'allow_remote_addr' => false,
+    ),
     'domains' => array(
         'example.com' => array(
             'provider' => 'hetzner',

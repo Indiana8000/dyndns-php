@@ -12,6 +12,12 @@ $request = Request::fromGlobals();
 $config = Config::load(__DIR__);
 $logger = new Logger($config->getLogFile());
 $logContext = $request->getLogContext();
+$resolvedIp = $request->getIpAddressForUpdate();
+if ($resolvedIp === '' && $config->allowsRemoteAddrFallback()) {
+    $resolvedIp = trim((string) $request->getUserIpAddress());
+}
+
+$logContext['ip'] = $resolvedIp;
 $statusCode = 200;
 $responseBody = 'OK';
 $logMessage = 'SUCCESS';
@@ -20,7 +26,7 @@ if (!$request->isUpdateRequest()) {
     $statusCode = 400;
     $responseBody = 'FAIL';
     $logMessage = 'ERROR: missing required parameters';
-} elseif (!$request->hasValidIpv4()) {
+} elseif (filter_var($resolvedIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
     $statusCode = 400;
     $responseBody = 'FAIL';
     $logMessage = 'ERROR: invalid IPv4 address';
@@ -51,7 +57,7 @@ if (!$request->isUpdateRequest()) {
                     new HttpClient()
                 );
 
-                if (!$provider->update($hostname, $request->getIpAddressForUpdate())) {
+                if (!$provider->update($hostname, $resolvedIp)) {
                     $statusCode = 502;
                     $responseBody = 'FAIL';
                     $logMessage = 'ERROR: provider update failed';
