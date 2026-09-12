@@ -29,11 +29,7 @@ class ProviderFactory
                 return new HetznerProvider($domain, $config, $logger, $httpRequest);
 
             case 'autodns':
-                if (isset($config['context']) && $config['context'] !== '') {
-                    return new AutoDnsProvider($domain, $config, $logger, $httpRequest);
-                }
-
-                return new InternetX($domain, $config, $logger, $httpRequest);
+                return new AutoDnsProvider($domain, $config, $logger, $httpRequest);
 
             case 'internetx':
                 return new InternetX($domain, $config, $logger, $httpRequest);

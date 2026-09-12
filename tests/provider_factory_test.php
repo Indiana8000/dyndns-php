@@ -55,8 +55,7 @@ $hetzner = ProviderFactory::create('hetzner', 'example.com', $config, $logger, $
 assertInstanceOf(Hetzner::class, $hetzner, 'hetzner should resolve to the Hetzner provider.');
 
 $legacyAutoDns = ProviderFactory::create('autodns', 'example.com', $config, $logger, $httpRequest);
-assertInstanceOf(InternetX::class, $legacyAutoDns, 'autodns should remain a compatibility alias for InternetX.');
-assertSame(InternetX::class, $legacyAutoDns::class, 'autodns without a legacy context should resolve to the modern InternetX provider.');
+assertInstanceOf(AutoDnsProvider::class, $legacyAutoDns, 'autodns should remain a compatibility alias through the legacy AutoDnsProvider wrapper.');
 
 $legacyAutoDnsWithContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 10), $logger, $httpRequest);
 assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithContext, 'autodns should continue to resolve to the legacy AutoDnsProvider wrapper.');
