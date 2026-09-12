@@ -1,5 +1,11 @@
 <?php
 
+if (PHP_SAPI !== 'cli' && !in_array($_SERVER['REMOTE_ADDR'] ?? '', array('127.0.0.1', '::1'), true)) {
+    http_response_code(403);
+    print 'Forbidden';
+    return;
+}
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }

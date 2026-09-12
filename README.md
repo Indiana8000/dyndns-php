@@ -7,6 +7,8 @@ A simple PHP-based self-hosted DynDNS solution that updates DNS records via host
 - `ddns.php` is the shared DynDNS endpoint.
 - `config.dist.php` contains the unified multi-provider example config.
 
+`index.php` is restricted to localhost/CLI access so the hash generator is not exposed publicly.
+
 ## DynDNS request
 
 Example request:
@@ -29,6 +31,7 @@ Required input for an update request:
 ## Configuration
 
 Copy `config.dist.php` to `config.php` and fill in your provider credentials.
+Configured accounts are expected to use `password_hash` values.
 
 Supported providers:
 

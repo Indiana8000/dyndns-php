@@ -15,11 +15,16 @@ class HetznerProvider extends AbstractProvider
         }
 
         $recordName = $this->getRelativeHostname($hostname);
-        if ($recordName === null || !$this->rrsetExists($zoneId, $recordName)) {
+        if ($recordName === null) {
             return false;
         }
 
-        return $this->setRrsetRecords($zoneId, $recordName, $ip);
+        $record = $this->getRecord($zoneId, $recordName);
+        if ($record === null) {
+            return false;
+        }
+
+        return $this->setRrsetRecords($zoneId, $record, $recordName, $ip);
     }
 
     private function getZoneId()
@@ -36,15 +41,12 @@ class HetznerProvider extends AbstractProvider
         return false;
     }
 
-    private function rrsetExists($zoneId, $name)
+    /**
+     * @param array<string, mixed> $record
+     */
+    private function setRrsetRecords($zoneId, array $record, $name, $ip)
     {
-        return $this->getRecord($zoneId, $name) !== null;
-    }
-
-    private function setRrsetRecords($zoneId, $name, $ip)
-    {
-        $record = $this->getRecord($zoneId, $name);
-        if ($record === null || empty($record['id'])) {
+        if (empty($record['id'])) {
             return false;
         }
 

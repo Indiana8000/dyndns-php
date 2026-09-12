@@ -119,15 +119,9 @@ class Config
      */
     public function passwordMatches(array $account, $password)
     {
-        if (!empty($account['password_hash']) && is_string($account['password_hash'])) {
-            return password_verify($password, $account['password_hash']);
-        }
-
-        if (array_key_exists('password', $account)) {
-            return hash_equals((string) $account['password'], (string) $password);
-        }
-
-        return false;
+        return !empty($account['password_hash'])
+            && is_string($account['password_hash'])
+            && password_verify($password, $account['password_hash']);
     }
 
     /**
