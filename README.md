@@ -148,6 +148,8 @@ If your router supports HTTP Basic Auth, you can also send:
 curl -u USER:PASS "https://your-domain.com/ddns.php?hostname=FQDN&ip=IP"
 ```
 
+If a router sends both query parameters and HTTP Basic Auth, the query parameters win.
+
 ### UniFi Controller example
 
 Create a custom Dynamic DNS profile and use:
@@ -197,7 +199,7 @@ The requested hostname does not match any configured domain entry. Check the ful
 
 ### I get `502 FAIL`
 
-The provider API rejected the update or the DNS record does not exist yet. Create the DNS record first in your provider panel, then try again.
+The update reached the provider step, but the provider update did not finish successfully. Common reasons are a missing DNS record, provider-side API problems, or an unexpected upstream response. Create the record first if needed, then check your provider status and credentials.
 
 ### I left out the `ip` parameter
 
