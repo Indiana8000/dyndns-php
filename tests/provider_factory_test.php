@@ -28,6 +28,19 @@ function assertInstanceOf($expectedClass, $actual, $message)
     }
 }
 
+function assertThrows(callable $callback, $expectedException, $expectedMessage, $message)
+{
+    try {
+        $callback();
+    } catch (Throwable $throwable) {
+        assertInstanceOf($expectedException, $throwable, $message . ' Wrong exception type.');
+        assertSame($expectedMessage, $throwable->getMessage(), $message . ' Wrong exception message.');
+        return;
+    }
+
+    throw new RuntimeException($message . ' Expected exception was not thrown.');
+}
+
 $logger = new Logger(dirname(__DIR__) . '/ddns.log');
 $httpRequest = new HttpRequest();
 $config = array('api_token' => 'token');
@@ -58,6 +71,15 @@ assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsDirect, 'Legacy AutoDnsPr
 
 $legacyHetznerDirect = new HetznerProvider('example.com', $config, $logger, new HttpClient());
 assertInstanceOf(HetznerProvider::class, $legacyHetznerDirect, 'Legacy HetznerProvider direct construction should remain supported.');
+
+assertThrows(
+    static function () use ($config, $logger, $httpRequest): void {
+        ProviderFactory::create('unsupported-provider', 'example.com', $config, $logger, $httpRequest);
+    },
+    InvalidArgumentException::class,
+    'Unsupported provider: unsupported-provider',
+    'Unsupported providers should still be rejected.'
+);
 
 $internetXContextMethod = new ReflectionMethod(InternetX::class, 'getContextId');
 $internetXContextMethod->setAccessible(true);

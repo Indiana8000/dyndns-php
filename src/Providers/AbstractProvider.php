@@ -19,7 +19,7 @@ abstract class AbstractProvider implements ProviderInterface
     /** @var Logger */
     protected $logger;
 
-    /** @var object */
+    /** @var HttpRequestInterface */
     protected $httpRequest;
 
     /**
