@@ -76,11 +76,6 @@ class Request
             && $this->get('password') !== '';
     }
 
-    public function hasValidIpv4()
-    {
-        return filter_var($this->get('ip'), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
-    }
-
     public function getUserIpAddress()
     {
         return $this->server['REMOTE_ADDR'] ?? 'unknown';

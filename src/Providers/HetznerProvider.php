@@ -2,6 +2,8 @@
 
 namespace Dyndns\Providers;
 
+use RuntimeException;
+
 class HetznerProvider extends AbstractProvider
 {
     /** @var string */
@@ -30,6 +32,10 @@ class HetznerProvider extends AbstractProvider
     private function getZoneId()
     {
         $response = $this->hetznerRequest('GET', $this->baseUrl . '/zones');
+        if ($response['code'] < 200 || $response['code'] >= 300) {
+            throw new RuntimeException('Hetzner zone lookup failed with status ' . $response['code']);
+        }
+
         $data = json_decode($response['body'], true);
 
         foreach (($data['zones'] ?? array()) as $zone) {
@@ -69,6 +75,10 @@ class HetznerProvider extends AbstractProvider
     private function getRecord($zoneId, $name)
     {
         $response = $this->hetznerRequest('GET', $this->baseUrl . '/records?zone_id=' . urlencode($zoneId));
+        if ($response['code'] < 200 || $response['code'] >= 300) {
+            throw new RuntimeException('Hetzner record lookup failed with status ' . $response['code']);
+        }
+
         $data = json_decode($response['body'], true);
         $expectedName = $name === '@' ? '' : $name;
 

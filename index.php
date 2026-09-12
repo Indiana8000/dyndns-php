@@ -35,7 +35,9 @@ if (
     $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 }
 
-header('Content-Type: text/html; charset=utf-8');
+if (!$isCli) {
+    header('Content-Type: text/html; charset=utf-8');
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
