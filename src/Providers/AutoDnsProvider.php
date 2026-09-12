@@ -4,7 +4,7 @@ namespace Dyndns\Providers;
 
 use RuntimeException;
 
-class AutoDnsProvider extends InternetX
+class AutoDnsProvider extends InternetX implements ProviderInterface
 {
     protected function getContextId()
     {

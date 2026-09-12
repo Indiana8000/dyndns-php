@@ -2,6 +2,6 @@
 
 namespace Dyndns\Providers;
 
-class HetznerProvider extends Hetzner
+class HetznerProvider extends Hetzner implements ProviderInterface
 {
 }
