@@ -26,7 +26,7 @@ class ProviderFactory
 
         switch (strtolower((string) $providerName)) {
             case 'hetzner':
-                return new HetznerProvider($domain, $config, $logger, $httpRequest);
+                return new Hetzner($domain, $config, $logger, $httpRequest);
 
             case 'autodns':
                 return new AutoDnsProvider($domain, $config, $logger, $httpRequest);

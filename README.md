@@ -39,4 +39,7 @@ Supported providers:
 - `hetzner`
 - `internetx` (InternetX / Domainrobot, internal context `4`)
 - `schlundtech` (InternetX / Domainrobot, internal context `10`)
-- `autodns` (backward-compatible alias; defaults to InternetX behavior and still honors legacy `context` values)
+
+Legacy compatibility alias:
+
+- `autodns` (backward-compatible alias for older configs; defaults to the legacy context and still honors explicit legacy `context` values)
