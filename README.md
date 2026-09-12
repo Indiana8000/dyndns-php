@@ -20,14 +20,11 @@ Example request:
 
 `hostname` must be the full FQDN. The matching domain entry in `config.php` or `config.dist.php` decides which provider implementation is used.
 
-Expected query parameters:
+Required input for an update request:
 
-- `username`
-- `password`
-- `hostname` (FQDN, for example `sub.example.com`)
-- `ip` (IPv4 address)
-
-`username` and `password` can also be supplied via HTTP Basic Auth instead of query parameters.
+- `hostname` as request parameter (FQDN, for example `sub.example.com`)
+- `ip` as request parameter (IPv4 address)
+- `username` and `password` either as request parameters or via HTTP Basic Auth
 
 ## Configuration
 
