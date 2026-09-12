@@ -3,7 +3,6 @@
 namespace Dyndns\Providers;
 
 use Dyndns\Config;
-use Dyndns\HttpRequest;
 use Dyndns\HttpRequestInterface;
 use Dyndns\Logger;
 use RuntimeException;
@@ -45,5 +44,15 @@ abstract class AbstractProvider implements ProviderInterface
         }
 
         return $this->config[$key];
+    }
+
+    protected function encodeJson($value, $errorContext)
+    {
+        $encoded = json_encode($value);
+        if ($encoded === false) {
+            throw new RuntimeException('Failed to encode ' . $errorContext . ': ' . json_last_error_msg());
+        }
+
+        return $encoded;
     }
 }

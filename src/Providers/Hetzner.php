@@ -57,17 +57,13 @@ class Hetzner extends AbstractProvider
             return false;
         }
 
-        $body = json_encode(array(
+        $body = $this->encodeJson(array(
             'zone_id' => $zoneId,
             'type' => $recordType,
             'name' => $name === '@' ? '' : $name,
             'value' => $ip,
             'ttl' => $record['ttl'] ?? 60,
-        ));
-        if ($body === false) {
-            throw new RuntimeException('Failed to encode Hetzner record payload: ' . json_last_error_msg());
-        }
-
+        ), 'Hetzner record payload');
         $url = $this->baseUrl . '/records/' . urlencode($record['id']);
         $response = $this->hetznerRequest('PUT', $url, $body);
 
