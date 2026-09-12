@@ -71,9 +71,9 @@ class Request
 
     public function isUpdateRequest()
     {
-        return $this->get('username') !== ''
-            && $this->get('hostname') !== ''
-            && $this->get('ip') !== '';
+        return $this->get('hostname') !== ''
+            && $this->get('ip') !== ''
+            && $this->get('password') !== '';
     }
 
     public function hasValidIpv4()
