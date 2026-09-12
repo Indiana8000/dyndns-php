@@ -64,6 +64,10 @@ class Hetzner extends AbstractProvider
             'value' => $ip,
             'ttl' => $record['ttl'] ?? 60,
         ));
+        if ($body === false) {
+            throw new RuntimeException('Failed to encode Hetzner record payload: ' . json_last_error_msg());
+        }
+
         $url = $this->baseUrl . '/records/' . urlencode($record['id']);
         $response = $this->hetznerRequest('PUT', $url, $body);
 

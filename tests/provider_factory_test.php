@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/src/Autoloader.php';
 
 use Dyndns\HttpRequest;
+use Dyndns\HttpClient;
 use Dyndns\Logger;
 use Dyndns\Providers\AutoDnsProvider;
 use Dyndns\Providers\Hetzner;
@@ -42,6 +43,9 @@ assertInstanceOf(Hetzner::class, $hetzner, 'hetzner should resolve to the Hetzne
 
 $legacyAutoDns = ProviderFactory::create('autodns', 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(InternetX::class, $legacyAutoDns, 'autodns should remain a compatibility alias for InternetX.');
+
+$legacyHttpClient = ProviderFactory::create('internetx', 'example.com', $config, $logger, new HttpClient());
+assertInstanceOf(InternetX::class, $legacyHttpClient, 'Legacy HttpClient instances should remain accepted.');
 
 $legacyAutoDnsClass = ProviderFactory::create(AutoDnsProvider::class, 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsClass, 'Legacy AutoDnsProvider class names should remain instantiable.');

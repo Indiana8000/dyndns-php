@@ -2,6 +2,8 @@
 
 namespace Dyndns\Providers;
 
+use RuntimeException;
+
 class InternetX extends AbstractProvider
 {
     public function update($hostname, $ip)
@@ -60,9 +62,16 @@ class InternetX extends AbstractProvider
     {
         $updated = false;
 
-        if ($hostname === '@' && $recordType === 'A' && isset($zone['main']) && is_array($zone['main'])) {
-            $zone['main']['address'] = $ip;
-            $updated = true;
+        if ($hostname === '@' && isset($zone['main']) && is_array($zone['main'])) {
+            if ($recordType === 'A') {
+                $zone['main']['address'] = $ip;
+                $updated = true;
+            }
+
+            if ($recordType === 'AAAA') {
+                $zone['main']['ipv6Address'] = $ip;
+                $updated = true;
+            }
         }
 
         foreach (($zone['resourceRecords'] ?? array()) as $index => $record) {
@@ -84,6 +93,10 @@ class InternetX extends AbstractProvider
     {
         unset($zone['purgeType']);
         $body = json_encode($zone);
+        if ($body === false) {
+            throw new RuntimeException('Failed to encode InternetX zone payload: ' . json_last_error_msg());
+        }
+
         $response = $this->internetXRequest('PUT', 'https://api.autodns.com/v1/zone/' . $this->domain, $body);
 
         return $response['code'] >= 200 && $response['code'] < 300;
