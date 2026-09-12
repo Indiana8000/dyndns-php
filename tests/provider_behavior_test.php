@@ -89,6 +89,12 @@ assertSame(true, $internetXProvider->update('example.com', '203.0.113.10'), 'Int
 assertSame('PUT', $internetXRequest->calls[1]['method'], 'InternetX should issue a PUT request after reading the zone.');
 assertSame('203.0.113.10', json_decode($internetXRequest->calls[1]['body'], true)['main']['address'], 'InternetX should update the root main address.');
 
+$internetXNonRootMainOnlyRequest = new FakeHttpRequest(array(
+    array('code' => 200, 'body' => json_encode(array('main' => array('address' => '198.51.100.1')))),
+));
+$internetXNonRootMainOnlyProvider = new InternetX('example.com', array('api_token' => 'token'), $logger, $internetXNonRootMainOnlyRequest);
+assertSame(false, $internetXNonRootMainOnlyProvider->update('home.example.com', '203.0.113.10'), 'InternetX should reject main-only payloads for non-root hostnames.');
+
 $internetXIpv6Request = new FakeHttpRequest(array(
     array('code' => 200, 'body' => json_encode(array(
         'main' => array('address' => '198.51.100.1'),

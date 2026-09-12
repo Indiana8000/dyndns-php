@@ -19,6 +19,10 @@ class InternetX extends AbstractProvider
             return false;
         }
 
+        if (!isset($zone['resourceRecords']) && $relativeHostname !== '@') {
+            return false;
+        }
+
         $zone = $this->updateZone($zone, $relativeHostname, $recordType, $ip);
         if ($zone === null) {
             return false;
