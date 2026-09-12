@@ -22,7 +22,7 @@ class Request
 
     public static function fromGlobals()
     {
-        return new self($_REQUEST, $_SERVER);
+        return new self(array_merge($_GET, $_POST), $_SERVER);
     }
 
     /**
@@ -40,7 +40,6 @@ class Request
     {
         return array(
             'username' => $this->get('username'),
-            'password' => $this->get('password'),
             'hostname' => $this->get('hostname'),
             'ip' => $this->get('ip'),
         );
