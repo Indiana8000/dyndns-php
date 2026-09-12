@@ -37,4 +37,5 @@ Configured accounts are expected to use `password_hash` values.
 Supported providers:
 
 - `hetzner`
-- `autodns` / `internetx`
+- `internetx` (InternetX / Domainrobot, internal context `4`)
+- `schlundtech` (InternetX / Domainrobot, internal context `10`)

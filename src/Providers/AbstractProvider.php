@@ -3,7 +3,7 @@
 namespace Dyndns\Providers;
 
 use Dyndns\Config;
-use Dyndns\HttpClient;
+use Dyndns\HttpRequest;
 use Dyndns\Logger;
 use RuntimeException;
 
@@ -18,18 +18,18 @@ abstract class AbstractProvider implements ProviderInterface
     /** @var Logger */
     protected $logger;
 
-    /** @var HttpClient */
-    protected $httpClient;
+    /** @var HttpRequest */
+    protected $httpRequest;
 
     /**
      * @param array<string, mixed> $config
      */
-    public function __construct($domain, array $config, Logger $logger, HttpClient $httpClient)
+    public function __construct($domain, array $config, Logger $logger, HttpRequest $httpRequest)
     {
         $this->domain = $domain;
         $this->config = $config;
         $this->logger = $logger;
-        $this->httpClient = $httpClient;
+        $this->httpRequest = $httpRequest;
     }
 
     protected function getRelativeHostname($hostname)
