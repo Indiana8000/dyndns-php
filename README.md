@@ -10,17 +10,19 @@
 
 ## How it works
 
-Your router sends a request like this:
+Safest option: let your router send the username and password with HTTP Basic Auth, and keep only hostname/IP in the URL:
+
+```bash
+curl -u alice:secret "https://example.com/ddns.php?hostname=home.example.com&ip=203.0.113.10"
+```
+
+For routers that can only send everything in one URL, this compatibility format is also supported:
 
 ```text
 https://your-domain.com/ddns.php?username=USER&password=PASS&hostname=FQDN&ip=IP
 ```
 
-Example:
-
-```text
-https://example.com/ddns.php?username=alice&password=secret&hostname=home.example.com&ip=203.0.113.10
-```
+Use that full URL format only if your router has no separate username/password fields, because URLs are often logged by routers, proxies, and web servers.
 
 - `username` and `password` must match an account in `config.php`
 - `hostname` must be the full host name, for example `home.example.com`
@@ -136,10 +138,11 @@ Most routers have a “custom Dynamic DNS” or “user-defined provider” opti
 - Update URL:
 
 ```text
-https://your-domain.com/ddns.php?username=USER&password=PASS&hostname=FQDN&ip=IP
+https://your-domain.com/ddns.php?hostname=FQDN&ip=IP
 ```
-- Username: optional if your router already inserts it into the URL
-- Password: optional if your router already inserts it into the URL
+
+- Username: `USER`
+- Password: `PASS`
 - Hostname: full host name, for example `home.example.com`
 
 If your router supports HTTP Basic Auth, you can also send:
@@ -150,6 +153,14 @@ curl -u USER:PASS "https://your-domain.com/ddns.php?hostname=FQDN&ip=IP"
 
 If a router sends both query parameters and HTTP Basic Auth, the query parameters win.
 
+If your router cannot send username/password separately, it may use this fallback URL:
+
+```text
+https://your-domain.com/ddns.php?username=USER&password=PASS&hostname=FQDN&ip=IP
+```
+
+Use that fallback only when necessary because query strings may be logged.
+
 ### UniFi Controller example
 
 Create a custom Dynamic DNS profile and use:
@@ -159,12 +170,7 @@ Create a custom Dynamic DNS profile and use:
 - Username: `alice`
 - Password: your plain router password
 - Server: `https://your-domain.com/ddns.php?hostname=%h&ip=%i`
-
-If your UniFi version expects one complete URL field, use:
-
-```text
-https://your-domain.com/ddns.php?username=alice&password=YOUR_PASSWORD&hostname=%h&ip=%i
-```
+- Leave the password out of the URL so it stays in UniFi's dedicated password field
 
 ### Fritz!Box example
 
@@ -173,15 +179,12 @@ In **Internet > Permit Access > Dynamic DNS**, choose **Custom** and use:
 - Update URL:
 
 ```text
-https://your-domain.com/ddns.php?username=<username>&password=<pass>&hostname=<domain>&ip=<ipaddr>
+https://your-domain.com/ddns.php?hostname=<domain>&ip=<ipaddr>
 ```
 
-Replace:
-
-- `<username>` with the account name from `config.php`
-- `<pass>` with the plain router password
-- `<domain>` with the full host name, for example `home.example.com`
-- `<ipaddr>` with the Fritz!Box IP placeholder
+- Domain name: the full host name, for example `home.example.com`
+- Username: the account name from `config.php`
+- Password: the plain router password
 
 ## Troubleshooting
 
