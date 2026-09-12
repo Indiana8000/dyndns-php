@@ -22,7 +22,17 @@ class Request
 
     public static function fromGlobals()
     {
-        return new self(array_merge($_GET, $_POST), $_SERVER);
+        $params = array_merge($_GET, $_POST);
+
+        if (empty($params['username']) && !empty($_SERVER['PHP_AUTH_USER'])) {
+            $params['username'] = $_SERVER['PHP_AUTH_USER'];
+        }
+
+        if (empty($params['password']) && !empty($_SERVER['PHP_AUTH_PW'])) {
+            $params['password'] = $_SERVER['PHP_AUTH_PW'];
+        }
+
+        return new self($params, $_SERVER);
     }
 
     /**

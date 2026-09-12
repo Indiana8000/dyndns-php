@@ -13,7 +13,7 @@ Example request:
 
 ```text
 /ddns.php?username=alice
-&******
+&password=secret
 &hostname=home.example.com
 &ip=203.0.113.10
 ```

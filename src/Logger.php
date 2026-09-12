@@ -21,7 +21,10 @@ class Logger
         foreach ($params as $key => $value) {
             if (in_array(strtolower((string) $key), $sensitiveKeys, true)) {
                 $params[$key] = '***';
+                continue;
             }
+
+            $params[$key] = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', is_scalar($value) ? (string) $value : json_encode($value));
         }
 
         $message = date('c') . ' - ' . $ipAddress . ' - ' . http_build_query($params, '', ' / ');
