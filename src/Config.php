@@ -129,6 +129,10 @@ class Config
      */
     public function passwordMatches(array $account, $password)
     {
+        if (!is_string($password)) {
+            return false;
+        }
+
         return !empty($account['password_hash'])
             && is_string($account['password_hash'])
             && password_verify($password, $account['password_hash']);

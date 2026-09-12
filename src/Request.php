@@ -49,7 +49,6 @@ class Request
     public function getLogContext()
     {
         return array(
-            'username' => $this->get('username'),
             'hostname' => $this->get('hostname'),
             'ip' => $this->get('ip'),
         );

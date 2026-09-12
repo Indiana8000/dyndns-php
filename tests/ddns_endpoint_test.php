@@ -114,4 +114,28 @@ $failure = invokeEndpoint(
 assertSame(502, $failure['code'], 'Provider false results should return 502.');
 assertSame('FAIL', $failure['body'], 'Provider false results should return FAIL.');
 
+$basicAuthFailure = invokeEndpoint(
+    $failureProvider,
+    'require ' . var_export(__DIR__ . '/support/FailingProvider.php', true) . ';',
+    array(
+        'PHP_AUTH_USER' => 'alice',
+        'PHP_AUTH_PW' => 'secret',
+    ),
+    array(
+        'hostname' => 'home.example.com',
+        'ip' => '203.0.113.10',
+    )
+);
+assertSame(502, $basicAuthFailure['code'], 'Basic Auth requests should reach provider handling.');
+assertSame('FAIL', $basicAuthFailure['body'], 'Basic Auth provider failures should return FAIL.');
+
+$malformedPassword = invokeEndpoint($unsupportedProvider, '', array(), array(
+    'username' => 'alice',
+    'password' => array('secret'),
+    'hostname' => 'home.example.com',
+    'ip' => '203.0.113.10',
+));
+assertSame(400, $malformedPassword['code'], 'Array password input should be rejected.');
+assertSame('FAIL', $malformedPassword['body'], 'Array password input should return FAIL.');
+
 echo "All ddns endpoint tests passed.\n";
