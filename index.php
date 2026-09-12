@@ -1,6 +1,15 @@
 <?php
 
-if (PHP_SAPI !== 'cli' && !in_array($_SERVER['REMOTE_ADDR'] ?? '', array('127.0.0.1', '::1'), true)) {
+require_once __DIR__ . '/src/Autoloader.php';
+
+$config = Dyndns\Config::load(__DIR__);
+if (
+    PHP_SAPI !== 'cli'
+    && (
+        !$config->isHashGeneratorEnabled()
+        || !in_array($_SERVER['REMOTE_ADDR'] ?? '', array('127.0.0.1', '::1'), true)
+    )
+) {
     http_response_code(403);
     print 'Forbidden';
     return;

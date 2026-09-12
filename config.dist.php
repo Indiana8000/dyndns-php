@@ -2,6 +2,9 @@
 
 return array(
     'log_file' => __DIR__ . '/ddns.log',
+    'hash_generator' => array(
+        'enabled' => false,
+    ),
     'domains' => array(
         'example.com' => array(
             'provider' => 'hetzner',

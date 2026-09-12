@@ -45,6 +45,11 @@ class Config
         return $this->config['log_file'];
     }
 
+    public function isHashGeneratorEnabled()
+    {
+        return !empty($this->config['hash_generator']['enabled']);
+    }
+
     /**
      * @return array{domain:string,config:array<string,mixed>}|null
      */

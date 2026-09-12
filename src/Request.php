@@ -71,7 +71,8 @@ class Request
 
     public function isUpdateRequest()
     {
-        return $this->get('hostname') !== ''
+        return $this->get('username') !== ''
+            && $this->get('hostname') !== ''
             && $this->get('ip') !== ''
             && $this->get('password') !== '';
     }
