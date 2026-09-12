@@ -125,7 +125,7 @@ You can also temporarily enable the built-in hash generator in `config.php`:
 ),
 ```
 
-Then open `index.php` from the server itself or via localhost access, generate the hash, copy it into `config.php`, and disable the generator again.
+Then open `index.php` from the server itself. Even when enabled, the page only works from localhost (or on the server console/CLI), generate the hash, copy it into `config.php`, and disable the generator again.
 
 ## Router configuration
 
