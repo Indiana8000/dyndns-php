@@ -1,0 +1,59 @@
+# Operating Systems
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+*~
+.idea/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+
+# IDE & Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.swp
+*.swo
+*~
+
+# PHP
+composer.phar
+/vendor/
+.env
+.env.local
+.env.*.local
+*.log
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build & Distribution
+/build/
+/dist/
+/tmp/
+*.tmp
+*.bak
+*.backup
+
+# OS-specific
+.TemporaryItems
+.VolumeIcon.icns
