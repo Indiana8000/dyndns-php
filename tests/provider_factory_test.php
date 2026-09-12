@@ -48,8 +48,14 @@ $config = array('api_token' => 'token');
 $internetX = ProviderFactory::create('internetx', 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(InternetX::class, $internetX, 'internetx should resolve to the InternetX provider.');
 
+$internetXMixedCase = ProviderFactory::create('InternetX', 'example.com', $config, $logger, $httpRequest);
+assertInstanceOf(InternetX::class, $internetXMixedCase, 'Provider names should be matched case-insensitively for InternetX.');
+
 $schlundTech = ProviderFactory::create('schlundtech', 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(SchlundTech::class, $schlundTech, 'schlundtech should resolve to the SchlundTech provider.');
+
+$schlundTechUpperCase = ProviderFactory::create('SCHLUNDTECH', 'example.com', $config, $logger, $httpRequest);
+assertInstanceOf(SchlundTech::class, $schlundTechUpperCase, 'Provider names should be matched case-insensitively for SchlundTech.');
 
 $hetzner = ProviderFactory::create('hetzner', 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(Hetzner::class, $hetzner, 'hetzner should resolve to the Hetzner provider.');
