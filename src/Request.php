@@ -58,6 +58,14 @@ class Request
     public function get($name)
     {
         $value = $this->params[$name] ?? '';
+        if ((!is_string($value) || trim($value) === '') && $name === 'username' && !empty($this->server['PHP_AUTH_USER'])) {
+            return trim((string) $this->server['PHP_AUTH_USER']);
+        }
+
+        if ((!is_string($value) || trim($value) === '') && $name === 'password' && !empty($this->server['PHP_AUTH_PW'])) {
+            return trim((string) $this->server['PHP_AUTH_PW']);
+        }
+
         return is_string($value) ? trim($value) : '';
     }
 
