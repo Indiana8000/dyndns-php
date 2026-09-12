@@ -6,6 +6,9 @@ use RuntimeException;
 
 class InternetX extends AbstractProvider
 {
+    /** @var string */
+    private $baseUrl = 'https://api.autodns.com/v1';
+
     public function update($hostname, $ip)
     {
         $zone = $this->getZone();
@@ -36,7 +39,7 @@ class InternetX extends AbstractProvider
      */
     private function getZone()
     {
-        $response = $this->internetXRequest('GET', 'https://api.autodns.com/v1/zone/' . $this->domain);
+        $response = $this->internetXRequest('GET', $this->baseUrl . '/zone/' . $this->domain);
         if ($response['code'] < 200 || $response['code'] >= 300) {
             return null;
         }
@@ -98,7 +101,7 @@ class InternetX extends AbstractProvider
     {
         unset($zone['purgeType']);
         $body = $this->encodeJson($zone, 'InternetX zone payload');
-        $response = $this->internetXRequest('PUT', 'https://api.autodns.com/v1/zone/' . $this->domain, $body);
+        $response = $this->internetXRequest('PUT', $this->baseUrl . '/zone/' . $this->domain, $body);
 
         return $response['code'] >= 200 && $response['code'] < 300;
     }

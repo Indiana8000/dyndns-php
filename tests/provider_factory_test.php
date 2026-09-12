@@ -7,9 +7,7 @@ require_once dirname(__DIR__) . '/src/Autoloader.php';
 use Dyndns\HttpRequest;
 use Dyndns\HttpClient;
 use Dyndns\Logger;
-use Dyndns\Providers\AutoDnsProvider;
 use Dyndns\Providers\Hetzner;
-use Dyndns\Providers\HetznerProvider;
 use Dyndns\Providers\InternetX;
 use Dyndns\Providers\ProviderFactory;
 use Dyndns\Providers\SchlundTech;
@@ -60,32 +58,8 @@ assertInstanceOf(SchlundTech::class, $schlundTechUpperCase, 'Provider names shou
 $hetzner = ProviderFactory::create('hetzner', 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(Hetzner::class, $hetzner, 'hetzner should resolve to the Hetzner provider.');
 
-$legacyAutoDns = ProviderFactory::create('autodns', 'example.com', $config, $logger, $httpRequest);
-assertInstanceOf(AutoDnsProvider::class, $legacyAutoDns, 'autodns should remain a compatibility alias through the legacy AutoDnsProvider wrapper.');
-
-$legacyAutoDnsWithContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 10), $logger, $httpRequest);
-assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithContext, 'autodns should continue to resolve to the legacy AutoDnsProvider wrapper.');
-
-$legacyAutoDnsWithInternetXContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 4), $logger, $httpRequest);
-assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithInternetXContext, 'Legacy autodns configs should still accept the historical InternetX context override.');
-
-$legacyAutoDnsWithPaddedContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => '010'), $logger, $httpRequest);
-assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithPaddedContext, 'Legacy autodns configs should accept zero-padded numeric context values.');
-
 $legacyHttpClient = ProviderFactory::create('internetx', 'example.com', $config, $logger, new HttpClient());
 assertInstanceOf(InternetX::class, $legacyHttpClient, 'Legacy HttpClient instances should remain accepted.');
-
-$legacyAutoDnsClass = ProviderFactory::create(AutoDnsProvider::class, 'example.com', $config, $logger, $httpRequest);
-assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsClass, 'Legacy AutoDnsProvider class names should remain instantiable.');
-
-$legacyHetznerClass = ProviderFactory::create(HetznerProvider::class, 'example.com', $config, $logger, $httpRequest);
-assertInstanceOf(HetznerProvider::class, $legacyHetznerClass, 'Legacy HetznerProvider class names should remain instantiable.');
-
-$legacyAutoDnsDirect = new AutoDnsProvider('example.com', $config, $logger, new HttpClient());
-assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsDirect, 'Legacy AutoDnsProvider direct construction should remain supported.');
-
-$legacyHetznerDirect = new HetznerProvider('example.com', $config, $logger, new HttpClient());
-assertInstanceOf(HetznerProvider::class, $legacyHetznerDirect, 'Legacy HetznerProvider direct construction should remain supported.');
 
 assertThrows(
     static function () use ($config, $logger, $httpRequest): void {
@@ -100,39 +74,18 @@ $internetXContextMethod = new ReflectionMethod(InternetX::class, 'getContextId')
 $internetXContextMethod->setAccessible(true);
 assertSame(4, $internetXContextMethod->invoke($internetX), 'InternetX should use context 4 internally.');
 
-$legacyAutoDnsContextMethod = new ReflectionMethod(AutoDnsProvider::class, 'getContextId');
-$legacyAutoDnsContextMethod->setAccessible(true);
-assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDns), 'Legacy autodns configs should default to the legacy AutoDNS context.');
-assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithContext), 'Legacy autodns configs should continue honoring explicit context values.');
-assertSame(4, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithInternetXContext), 'Legacy autodns configs should allow the historical InternetX context override.');
-assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithPaddedContext), 'Legacy autodns configs should normalize zero-padded numeric context values.');
-
-assertThrows(
-    static function () use ($config, $logger, $httpRequest): void {
-        $provider = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 99), $logger, $httpRequest);
-        $contextMethod = new ReflectionMethod(AutoDnsProvider::class, 'getContextId');
-        $contextMethod->setAccessible(true);
-        $contextMethod->invoke($provider);
-    },
-    RuntimeException::class,
-    'Unsupported legacy autodns context: 99',
-    'Legacy autodns should reject unsupported context overrides.'
-);
-
-assertThrows(
-    static function () use ($config, $logger, $httpRequest): void {
-        $provider = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 'foo'), $logger, $httpRequest);
-        $contextMethod = new ReflectionMethod(AutoDnsProvider::class, 'getContextId');
-        $contextMethod->setAccessible(true);
-        $contextMethod->invoke($provider);
-    },
-    RuntimeException::class,
-    'Unsupported legacy autodns context: foo',
-    'Legacy autodns should reject non-numeric context overrides without coercing them.'
-);
-
 $schlundTechContextMethod = new ReflectionMethod(SchlundTech::class, 'getContextId');
 $schlundTechContextMethod->setAccessible(true);
 assertSame(10, $schlundTechContextMethod->invoke($schlundTech), 'SchlundTech should use context 10 internally.');
+
+$removedAlias = 'auto' . 'dns';
+assertThrows(
+    static function () use ($config, $logger, $httpRequest, $removedAlias): void {
+        ProviderFactory::create($removedAlias, 'example.com', $config, $logger, $httpRequest);
+    },
+    InvalidArgumentException::class,
+    'Unsupported provider: ' . $removedAlias,
+    'Removed legacy aliases should be rejected.'
+);
 
 echo "All provider factory tests passed.\n";
