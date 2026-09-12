@@ -1,45 +1,204 @@
 # dyndns-php
-A simple PHP-based self-hosted DynDNS solution that updates DNS records via hosting provider APIs
 
-## Files
+`dyndns-php` is a small self-hosted Dynamic DNS endpoint for routers and home internet connections. Your router calls `ddns.php`, and the script updates the DNS record at your DNS provider so your domain always points to your current public IP address.
 
-- `index.php` renders a bcrypt password hash generator.
-- `ddns.php` is the shared DynDNS endpoint.
-- `config.dist.php` contains the unified multi-provider example config.
+## Supported DNS providers
 
-`index.php` is restricted to localhost/CLI access and is disabled by default via `hash_generator.enabled` so the hash generator is not exposed publicly.
+- Hetzner DNS
+- InternetX
+- SchlundTech
 
-## DynDNS request
+## How it works
 
-Example request:
+Your router sends a request like this:
 
-```bash
-curl -u alice:secret "https://example.com/ddns.php?hostname=home.example.com&ip=203.0.113.10"
+```text
+https://your-domain.com/ddns.php?username=USER&password=PASS&hostname=FQDN&ip=IP
 ```
 
-`hostname` must be the full FQDN. The matching domain entry in `config.php` or `config.dist.php` decides which provider implementation is used.
+Example:
 
-Required input for an update request:
+```text
+https://example.com/ddns.php?username=alice&password=secret&hostname=home.example.com&ip=203.0.113.10
+```
 
-- `hostname` as request parameter (FQDN, for example `sub.example.com`)
-- `ip` as request parameter (IPv4 or IPv6, optional only when `ip_fallback.allow_remote_addr` is enabled because the endpoint then substitutes `REMOTE_ADDR` before validation)
-- `username` and `password` either as request parameters or via HTTP Basic Auth
+- `username` and `password` must match an account in `config.php`
+- `hostname` must be the full host name, for example `home.example.com`
+- `ip` is the public IPv4 or IPv6 address that should be written to DNS
 
-If both request parameters and HTTP Basic Auth are sent, the request parameters take precedence.
-If `ip` is omitted, PHP must receive the real client IPv4 address in `REMOTE_ADDR` from trusted server/proxy configuration. Do not enable this fallback behind reverse proxies or load balancers unless they rewrite `REMOTE_ADDR` safely.
-The endpoint updates `A` or `AAAA` records based on the IP version that is provided.
+The script updates an `A` record for IPv4 and an `AAAA` record for IPv6.
 
-## Configuration
+## Installation and setup
 
-Copy `config.dist.php` to `config.php` and fill in your provider credentials.
-Configured accounts are expected to use `password_hash` values.
+1. Copy the project files to a PHP-enabled web server.
+2. Copy `config.dist.php` to `config.php`.
+3. Edit `config.php` and add your provider credentials, domains, and router login accounts.
+4. Point your router's Dynamic DNS settings to your public `ddns.php` URL.
+5. Test once from a browser or with `curl`.
 
-Supported providers:
+## Provider credentials
 
-- `hetzner`
-- `internetx` (InternetX / Domainrobot, internal context `4`)
-- `schlundtech` (InternetX / Domainrobot, internal context `10`)
+### Hetzner DNS
 
-Legacy compatibility alias:
+1. Sign in at `https://dns.hetzner.com/`
+2. Open the user menu and create an API token
+3. Paste that token into `api_token`
 
-- `autodns` (backward-compatible alias for older configs; defaults to the legacy context and still honors explicit legacy `context` values)
+Example:
+
+```php
+'provider' => 'hetzner',
+'api_token' => 'YOUR_HETZNER_API_TOKEN',
+```
+
+### InternetX
+
+InternetX uses API username/password authentication. In this project, `api_token` must contain:
+
+```text
+base64_encode('API_USERNAME:API_PASSWORD')
+```
+
+Example:
+
+```php
+'provider' => 'internetx',
+'api_token' => 'BASE64_ENCODED_USERNAME_PASSWORD',
+```
+
+### SchlundTech
+
+SchlundTech uses the same API style as InternetX. You still enter the provider as `schlundtech`, and the project chooses the correct API context automatically.
+
+```php
+'provider' => 'schlundtech',
+'api_token' => 'BASE64_ENCODED_USERNAME_PASSWORD',
+```
+
+## Configuring domains and accounts
+
+Each top-level entry inside `domains` is one DNS zone. Inside that zone you define:
+
+- `provider`: `hetzner`, `internetx`, or `schlundtech`
+- `api_token`: your provider credential
+- `accounts`: router usernames that are allowed to update selected hostnames
+
+Example:
+
+```php
+'domains' => array(
+    'example.com' => array(
+        'provider' => 'internetx',
+        'api_token' => 'BASE64_ENCODED_USERNAME_PASSWORD',
+        'accounts' => array(
+            'router1' => array(
+                'password_hash' => '$2y$10$REPLACE_WITH_HASH',
+                'hostnames' => array('home', 'office', '@'),
+            ),
+        ),
+    ),
+),
+```
+
+`hostnames` may contain:
+
+- `@` for the root domain (`example.com`)
+- a short host name like `home`
+- a full host name like `home.example.com`
+- `*` to allow every host inside that domain entry
+
+## Generate the password hash
+
+The password stored in `config.php` must be a PHP `password_hash()` value, not plain text.
+
+Fastest option:
+
+```bash
+php -r "echo password_hash('YOUR_ROUTER_PASSWORD', PASSWORD_DEFAULT), PHP_EOL;"
+```
+
+You can also temporarily enable the built-in hash generator in `config.php`:
+
+```php
+'hash_generator' => array(
+    'enabled' => true,
+),
+```
+
+Then open `index.php` from the server itself or via localhost access, generate the hash, copy it into `config.php`, and disable the generator again.
+
+## Router configuration
+
+### Generic Dynamic DNS setup
+
+Most routers have a “custom Dynamic DNS” or “user-defined provider” option. Use these values:
+
+- Update URL:
+
+```text
+https://your-domain.com/ddns.php?username=USER&password=PASS&hostname=FQDN&ip=IP
+```
+- Username: optional if your router already inserts it into the URL
+- Password: optional if your router already inserts it into the URL
+- Hostname: full host name, for example `home.example.com`
+
+If your router supports HTTP Basic Auth, you can also send:
+
+```bash
+curl -u USER:PASS "https://your-domain.com/ddns.php?hostname=FQDN&ip=IP"
+```
+
+### UniFi Controller example
+
+Create a custom Dynamic DNS profile and use:
+
+- Service: `custom`
+- Hostname: `home.example.com`
+- Username: `alice`
+- Password: your plain router password
+- Server: `https://your-domain.com/ddns.php?hostname=%h&ip=%i`
+
+If your UniFi version expects one complete URL field, use:
+
+```text
+https://your-domain.com/ddns.php?username=alice&password=YOUR_PASSWORD&hostname=%h&ip=%i
+```
+
+### Fritz!Box example
+
+In **Internet > Permit Access > Dynamic DNS**, choose **Custom** and use:
+
+- Update URL:
+
+```text
+https://your-domain.com/ddns.php?username=<username>&password=<pass>&hostname=<domain>&ip=<ipaddr>
+```
+
+Replace:
+
+- `<username>` with the account name from `config.php`
+- `<pass>` with the plain router password
+- `<domain>` with the full host name, for example `home.example.com`
+- `<ipaddr>` with the Fritz!Box IP placeholder
+
+## Troubleshooting
+
+### I get `401 FAIL`
+
+The username or password is wrong. Check the router credentials and confirm that `password_hash` was generated from the same plain password.
+
+### I get `403 FAIL`
+
+The account is valid, but that account is not allowed to update the requested hostname. Check the `hostnames` list for that user.
+
+### I get `404 FAIL`
+
+The requested hostname does not match any configured domain entry. Check the full FQDN in your router and the domain keys in `config.php`.
+
+### I get `502 FAIL`
+
+The provider API rejected the update or the DNS record does not exist yet. Create the DNS record first in your provider panel, then try again.
+
+### I left out the `ip` parameter
+
+That only works if you explicitly enable `ip_fallback.allow_remote_addr` and your web server passes the real client IP in `REMOTE_ADDR`. Leave it disabled unless you are sure your proxy/server setup is correct.
