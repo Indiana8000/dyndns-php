@@ -57,6 +57,9 @@ assertInstanceOf(Hetzner::class, $hetzner, 'hetzner should resolve to the Hetzne
 $legacyAutoDns = ProviderFactory::create('autodns', 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(InternetX::class, $legacyAutoDns, 'autodns should remain a compatibility alias for InternetX.');
 
+$legacyAutoDnsWithContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 10), $logger, $httpRequest);
+assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithContext, 'autodns should continue to resolve to the legacy AutoDnsProvider wrapper.');
+
 $legacyHttpClient = ProviderFactory::create('internetx', 'example.com', $config, $logger, new HttpClient());
 assertInstanceOf(InternetX::class, $legacyHttpClient, 'Legacy HttpClient instances should remain accepted.');
 
@@ -84,6 +87,10 @@ assertThrows(
 $internetXContextMethod = new ReflectionMethod(InternetX::class, 'getContextId');
 $internetXContextMethod->setAccessible(true);
 assertSame(4, $internetXContextMethod->invoke($internetX), 'InternetX should use context 4 internally.');
+
+$legacyAutoDnsContextMethod = new ReflectionMethod(AutoDnsProvider::class, 'getContextId');
+$legacyAutoDnsContextMethod->setAccessible(true);
+assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithContext), 'Legacy autodns configs should continue honoring explicit context values.');
 
 $schlundTechContextMethod = new ReflectionMethod(SchlundTech::class, 'getContextId');
 $schlundTechContextMethod->setAccessible(true);
