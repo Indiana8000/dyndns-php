@@ -11,69 +11,64 @@ use Dyndns\Providers\ProviderFactory;
 $request = Request::fromGlobals();
 $config = Config::load(__DIR__);
 $logger = new Logger($config->getLogFile());
-
-$logger->logRequest($request->getLogContext(), $request->getUserIpAddress());
+$logContext = $request->getLogContext();
+$statusCode = 200;
+$responseBody = 'OK';
+$logMessage = 'SUCCESS';
 
 if (!$request->isUpdateRequest()) {
-    $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: missing required parameters');
-    http_response_code(400);
-    print 'FAIL';
-    return;
-}
+    $statusCode = 400;
+    $responseBody = 'FAIL';
+    $logMessage = 'ERROR: missing required parameters';
+} elseif (!$request->hasValidIpv4()) {
+    $statusCode = 400;
+    $responseBody = 'FAIL';
+    $logMessage = 'ERROR: invalid IPv4 address';
+} else {
+    $hostname = Config::normalizeHostname($request->get('hostname'));
+    $domainMatch = $config->resolveDomain($hostname);
+    if ($domainMatch === null) {
+        $statusCode = 404;
+        $responseBody = 'FAIL';
+        $logMessage = 'ERROR: unknown hostname';
+    } else {
+        $account = $config->getAccount($domainMatch['config'], $request->get('username'));
+        if ($account === null || !$config->passwordMatches($account, $request->get('password'))) {
+            $statusCode = 401;
+            $responseBody = 'FAIL';
+            $logMessage = 'ERROR: authentication failed';
+        } elseif (!$config->hostnameAllowed($account, $hostname, $domainMatch['domain'])) {
+            $statusCode = 403;
+            $responseBody = 'FAIL';
+            $logMessage = 'ERROR: hostname not allowed';
+        } else {
+            try {
+                $provider = ProviderFactory::create(
+                    $domainMatch['config']['provider'] ?? '',
+                    $domainMatch['domain'],
+                    $domainMatch['config'],
+                    $logger,
+                    new HttpClient()
+                );
 
-if (!$request->hasValidIpv4()) {
-    $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: invalid IPv4 address');
-    http_response_code(400);
-    print 'FAIL';
-    return;
-}
-
-$hostname = Config::normalizeHostname($request->get('hostname'));
-$domainMatch = $config->resolveDomain($hostname);
-if ($domainMatch === null) {
-    $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: unknown hostname');
-    http_response_code(404);
-    print 'FAIL';
-    return;
-}
-
-$account = $config->getAccount($domainMatch['config'], $request->get('username'));
-if ($account === null || !$config->passwordMatches($account, $request->get('password'))) {
-    $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: authentication failed');
-    http_response_code(401);
-    header('WWW-Authenticate: Basic realm="dyndns-php"');
-    print 'FAIL';
-    return;
-}
-
-if (!$config->hostnameAllowed($account, $hostname, $domainMatch['domain'])) {
-    $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: hostname not allowed');
-    http_response_code(403);
-    print 'FAIL';
-    return;
-}
-
-try {
-    $provider = ProviderFactory::create(
-        $domainMatch['config']['provider'] ?? '',
-        $domainMatch['domain'],
-        $domainMatch['config'],
-        $logger,
-        new HttpClient()
-    );
-
-    if (!$provider->update($hostname, $request->getIpAddressForUpdate())) {
-        $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: provider update failed');
-        http_response_code(502);
-        print 'FAIL';
-        return;
+                if (!$provider->update($hostname, $request->getIpAddressForUpdate())) {
+                    $statusCode = 502;
+                    $responseBody = 'FAIL';
+                    $logMessage = 'ERROR: provider update failed';
+                }
+            } catch (\Throwable $exception) {
+                $statusCode = 500;
+                $responseBody = 'FAIL';
+                $logMessage = 'ERROR: ' . $exception->getMessage();
+            }
+        }
     }
-} catch (\Throwable $exception) {
-    $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: ' . $exception->getMessage());
-    http_response_code(500);
-    print 'FAIL';
-    return;
 }
 
-$logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'SUCCESS');
-print 'OK';
+http_response_code($statusCode);
+if ($statusCode === 401) {
+    header('WWW-Authenticate: Basic realm="dyndns-php"');
+}
+
+$logger->logRequest($logContext, $request->getUserIpAddress(), $logMessage);
+print $responseBody;

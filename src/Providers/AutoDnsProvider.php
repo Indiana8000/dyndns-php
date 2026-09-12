@@ -36,7 +36,15 @@ class AutoDnsProvider extends AbstractProvider
         $response = $this->autoDnsRequest('GET', 'https://api.autodns.com/v1/zone/' . $this->domain);
         $data = json_decode($response['body'], true);
 
-        return $data['data'][0] ?? null;
+        if (isset($data['data'][0]) && is_array($data['data'][0])) {
+            return $data['data'][0];
+        }
+
+        if (isset($data['data']) && is_array($data['data'])) {
+            return $data['data'];
+        }
+
+        return is_array($data) ? $data : null;
     }
 
     /**
@@ -78,7 +86,7 @@ class AutoDnsProvider extends AbstractProvider
             array(
                 'Content-Type: application/json',
                 'Authorization: Basic ' . $this->requireConfigValue('api_token'),
-                'X-Domainrobot-Context: ' . (string) ($this->config['context'] ?? 10),
+                'X-Domainrobot-Context: ' . (string) $this->requireConfigValue('context'),
             ),
             $body
         );
