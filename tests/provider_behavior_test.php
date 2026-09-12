@@ -89,6 +89,21 @@ assertSame(true, $internetXProvider->update('example.com', '203.0.113.10'), 'Int
 assertSame('PUT', $internetXRequest->calls[1]['method'], 'InternetX should issue a PUT request after reading the zone.');
 assertSame('203.0.113.10', json_decode($internetXRequest->calls[1]['body'], true)['main']['address'], 'InternetX should update the root main address.');
 
+$internetXIpv6Request = new FakeHttpRequest(array(
+    array('code' => 200, 'body' => json_encode(array(
+        'main' => array('address' => '198.51.100.1'),
+        'resourceRecords' => array(
+            array('name' => '', 'type' => 'AAAA', 'value' => '2001:db8::1'),
+        ),
+    ))),
+    array('code' => 200, 'body' => '{}'),
+));
+$internetXIpv6Provider = new InternetX('example.com', array('api_token' => 'token'), $logger, $internetXIpv6Request);
+assertSame(true, $internetXIpv6Provider->update('example.com', '2001:db8::2'), 'InternetX should support IPv6 root updates through resource records.');
+$internetXIpv6Payload = json_decode($internetXIpv6Request->calls[1]['body'], true);
+assertSame('198.51.100.1', $internetXIpv6Payload['main']['address'], 'InternetX IPv6 root updates must not overwrite main.address.');
+assertSame('2001:db8::2', $internetXIpv6Payload['resourceRecords'][0]['value'], 'InternetX IPv6 root updates should update the matching AAAA resource record.');
+
 $internetXEncodeFailureRequest = new FakeHttpRequest(array(
     array('code' => 200, 'body' => json_encode(array('main' => array('address' => '198.51.100.1')))),
 ));

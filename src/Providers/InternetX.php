@@ -70,7 +70,7 @@ class InternetX extends AbstractProvider
     {
         $updated = false;
 
-        if ($hostname === '@' && isset($zone['main']) && is_array($zone['main'])) {
+        if ($hostname === '@' && $recordType === 'A' && isset($zone['main']) && is_array($zone['main'])) {
             $zone['main']['address'] = $ip;
             $updated = true;
         }
