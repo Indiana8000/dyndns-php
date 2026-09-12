@@ -41,6 +41,7 @@ $account = $config->getAccount($domainMatch['config'], $request->get('username')
 if ($account === null || !$config->passwordMatches($account, $request->get('password'))) {
     $logger->logRequest($request->getLogContext(), $request->getUserIpAddress(), 'ERROR: authentication failed');
     http_response_code(401);
+    header('WWW-Authenticate: Basic realm="dyndns-php"');
     print 'FAIL';
     return;
 }
