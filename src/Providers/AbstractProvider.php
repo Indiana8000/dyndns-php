@@ -18,14 +18,18 @@ abstract class AbstractProvider implements ProviderInterface
     /** @var Logger */
     protected $logger;
 
-    /** @var HttpRequest */
+    /** @var object */
     protected $httpRequest;
 
     /**
      * @param array<string, mixed> $config
      */
-    public function __construct($domain, array $config, Logger $logger, HttpRequest $httpRequest)
+    public function __construct($domain, array $config, Logger $logger, $httpRequest)
     {
+        if (!is_object($httpRequest) || !method_exists($httpRequest, 'request')) {
+            throw new RuntimeException('Invalid HTTP request handler');
+        }
+
         $this->domain = $domain;
         $this->config = $config;
         $this->logger = $logger;

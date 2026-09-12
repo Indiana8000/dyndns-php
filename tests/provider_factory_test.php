@@ -6,7 +6,9 @@ require_once dirname(__DIR__) . '/src/Autoloader.php';
 
 use Dyndns\HttpRequest;
 use Dyndns\Logger;
+use Dyndns\Providers\AutoDnsProvider;
 use Dyndns\Providers\Hetzner;
+use Dyndns\Providers\HetznerProvider;
 use Dyndns\Providers\InternetX;
 use Dyndns\Providers\ProviderFactory;
 use Dyndns\Providers\SchlundTech;
@@ -40,6 +42,12 @@ assertInstanceOf(Hetzner::class, $hetzner, 'hetzner should resolve to the Hetzne
 
 $legacyAutoDns = ProviderFactory::create('autodns', 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(InternetX::class, $legacyAutoDns, 'autodns should remain a compatibility alias for InternetX.');
+
+$legacyAutoDnsClass = ProviderFactory::create(AutoDnsProvider::class, 'example.com', $config, $logger, $httpRequest);
+assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsClass, 'Legacy AutoDnsProvider class names should remain instantiable.');
+
+$legacyHetznerClass = ProviderFactory::create(HetznerProvider::class, 'example.com', $config, $logger, $httpRequest);
+assertInstanceOf(HetznerProvider::class, $legacyHetznerClass, 'Legacy HetznerProvider class names should remain instantiable.');
 
 $internetXContextMethod = new ReflectionMethod(InternetX::class, 'getContextId');
 $internetXContextMethod->setAccessible(true);
