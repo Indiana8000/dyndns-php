@@ -4,6 +4,7 @@ namespace Dyndns\Providers;
 
 use Dyndns\Config;
 use Dyndns\HttpRequest;
+use Dyndns\HttpRequestInterface;
 use Dyndns\Logger;
 use RuntimeException;
 
@@ -24,7 +25,7 @@ abstract class AbstractProvider implements ProviderInterface
     /**
      * @param array<string, mixed> $config
      */
-    public function __construct($domain, array $config, Logger $logger, HttpRequest $httpRequest)
+    public function __construct($domain, array $config, Logger $logger, HttpRequestInterface $httpRequest)
     {
         $this->domain = $domain;
         $this->config = $config;

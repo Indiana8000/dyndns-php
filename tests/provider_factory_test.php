@@ -53,6 +53,12 @@ assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsClass, 'Legacy AutoDnsPro
 $legacyHetznerClass = ProviderFactory::create(HetznerProvider::class, 'example.com', $config, $logger, $httpRequest);
 assertInstanceOf(HetznerProvider::class, $legacyHetznerClass, 'Legacy HetznerProvider class names should remain instantiable.');
 
+$legacyAutoDnsDirect = new AutoDnsProvider('example.com', $config, $logger, new HttpClient());
+assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsDirect, 'Legacy AutoDnsProvider direct construction should remain supported.');
+
+$legacyHetznerDirect = new HetznerProvider('example.com', $config, $logger, new HttpClient());
+assertInstanceOf(HetznerProvider::class, $legacyHetznerDirect, 'Legacy HetznerProvider direct construction should remain supported.');
+
 $internetXContextMethod = new ReflectionMethod(InternetX::class, 'getContextId');
 $internetXContextMethod->setAccessible(true);
 assertSame(4, $internetXContextMethod->invoke($internetX), 'InternetX should use context 4 internally.');

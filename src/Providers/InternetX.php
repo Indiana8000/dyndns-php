@@ -39,15 +39,23 @@ class InternetX extends AbstractProvider
 
         $data = json_decode($response['body'], true);
 
-        if (isset($data['data'][0]) && is_array($data['data'][0]) && isset($data['data'][0]['resourceRecords'])) {
+        if (
+            isset($data['data'][0])
+            && is_array($data['data'][0])
+            && (isset($data['data'][0]['resourceRecords']) || isset($data['data'][0]['main']))
+        ) {
             return $data['data'][0];
         }
 
-        if (isset($data['data']) && is_array($data['data']) && isset($data['data']['resourceRecords'])) {
+        if (
+            isset($data['data'])
+            && is_array($data['data'])
+            && (isset($data['data']['resourceRecords']) || isset($data['data']['main']))
+        ) {
             return $data['data'];
         }
 
-        if (is_array($data) && isset($data['resourceRecords'])) {
+        if (is_array($data) && (isset($data['resourceRecords']) || isset($data['main']))) {
             return $data;
         }
 

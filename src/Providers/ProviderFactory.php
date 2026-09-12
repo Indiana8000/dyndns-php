@@ -2,7 +2,7 @@
 
 namespace Dyndns\Providers;
 
-use Dyndns\HttpRequest;
+use Dyndns\HttpRequestInterface;
 use Dyndns\Logger;
 use InvalidArgumentException;
 
@@ -11,7 +11,7 @@ class ProviderFactory
     /**
      * @param array<string, mixed> $config
      */
-    public static function create($providerName, $domain, array $config, Logger $logger, HttpRequest $httpRequest)
+    public static function create($providerName, $domain, array $config, Logger $logger, HttpRequestInterface $httpRequest)
     {
         if (is_string($providerName) && class_exists($providerName) && is_subclass_of($providerName, ProviderInterface::class)) {
             return new $providerName($domain, $config, $logger, $httpRequest);

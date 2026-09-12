@@ -4,7 +4,7 @@ namespace Dyndns;
 
 use RuntimeException;
 
-class HttpRequest
+class HttpRequest implements HttpRequestInterface
 {
     /**
      * @param array<int, string> $headers
