@@ -69,6 +69,9 @@ assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithContext, 'autodns sho
 $legacyAutoDnsWithInternetXContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => 4), $logger, $httpRequest);
 assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithInternetXContext, 'Legacy autodns configs should still accept the historical InternetX context override.');
 
+$legacyAutoDnsWithPaddedContext = ProviderFactory::create('autodns', 'example.com', array('api_token' => 'token', 'context' => '010'), $logger, $httpRequest);
+assertInstanceOf(AutoDnsProvider::class, $legacyAutoDnsWithPaddedContext, 'Legacy autodns configs should accept zero-padded numeric context values.');
+
 $legacyHttpClient = ProviderFactory::create('internetx', 'example.com', $config, $logger, new HttpClient());
 assertInstanceOf(InternetX::class, $legacyHttpClient, 'Legacy HttpClient instances should remain accepted.');
 
@@ -102,6 +105,7 @@ $legacyAutoDnsContextMethod->setAccessible(true);
 assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDns), 'Legacy autodns configs should default to the legacy AutoDNS context.');
 assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithContext), 'Legacy autodns configs should continue honoring explicit context values.');
 assertSame(4, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithInternetXContext), 'Legacy autodns configs should allow the historical InternetX context override.');
+assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithPaddedContext), 'Legacy autodns configs should normalize zero-padded numeric context values.');
 
 assertThrows(
     static function () use ($config, $logger, $httpRequest): void {

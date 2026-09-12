@@ -10,12 +10,11 @@ class AutoDnsProvider extends InternetX implements ProviderInterface
     {
         if (isset($this->config['context']) && $this->config['context'] !== '') {
             $rawContext = $this->config['context'];
-            if ($rawContext === 4 || $rawContext === '4') {
-                return 4;
-            }
-
-            if ($rawContext === 10 || $rawContext === '10') {
-                return 10;
+            if (is_int($rawContext) || (is_string($rawContext) && preg_match('/^[0-9]+$/', $rawContext) === 1)) {
+                $normalizedContext = (int) $rawContext;
+                if (in_array($normalizedContext, array(4, 10), true)) {
+                    return $normalizedContext;
+                }
             }
 
             throw new RuntimeException('Unsupported legacy autodns context: ' . $rawContext);
