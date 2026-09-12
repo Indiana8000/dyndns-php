@@ -10,6 +10,6 @@ class AutoDnsProvider extends InternetX
             return (int) $this->config['context'];
         }
 
-        return parent::getContextId();
+        return 10;
     }
 }

@@ -90,6 +90,7 @@ assertSame(4, $internetXContextMethod->invoke($internetX), 'InternetX should use
 
 $legacyAutoDnsContextMethod = new ReflectionMethod(AutoDnsProvider::class, 'getContextId');
 $legacyAutoDnsContextMethod->setAccessible(true);
+assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDns), 'Legacy autodns configs should default to the legacy AutoDNS context.');
 assertSame(10, $legacyAutoDnsContextMethod->invoke($legacyAutoDnsWithContext), 'Legacy autodns configs should continue honoring explicit context values.');
 
 $schlundTechContextMethod = new ReflectionMethod(SchlundTech::class, 'getContextId');
