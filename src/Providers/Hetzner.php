@@ -7,7 +7,7 @@ use RuntimeException;
 class Hetzner extends AbstractProvider
 {
     /** @var string */
-    private $baseUrl = 'https://dns.hetzner.com/api/v1';
+    private $baseUrl = 'https://api.hetzner.cloud/v1';
 
     public function update($hostname, $ip)
     {
@@ -22,17 +22,17 @@ class Hetzner extends AbstractProvider
             return false;
         }
 
-        $record = $this->getRecord($zoneId, $recordName, $recordType);
-        if ($record === null) {
+        $rrset = $this->getRrset($zoneId, $recordName, $recordType);
+        if ($rrset === null) {
             return false;
         }
 
-        return $this->setRrsetRecords($zoneId, $record, $recordName, $recordType, $ip);
+        return $this->setRrsetRecords($zoneId, $recordName, $recordType, $ip, $rrset);
     }
 
     private function getZoneId()
     {
-        $response = $this->hetznerRequest('GET', $this->baseUrl . '/zones');
+        $response = $this->hetznerRequest('GET', $this->baseUrl . '/zones?name=' . urlencode($this->domain));
         if ($response['code'] < 200 || $response['code'] >= 300) {
             throw new RuntimeException('Hetzner zone lookup failed with status ' . $response['code']);
         }
@@ -49,47 +49,41 @@ class Hetzner extends AbstractProvider
     }
 
     /**
-     * @param array<string, mixed> $record
-     */
-    private function setRrsetRecords($zoneId, array $record, $name, $recordType, $ip)
-    {
-        if (empty($record['id'])) {
-            return false;
-        }
-
-        $body = $this->encodeJson(array(
-            'zone_id' => $zoneId,
-            'type' => $recordType,
-            'name' => $name === '@' ? '' : $name,
-            'value' => $ip,
-            'ttl' => $record['ttl'] ?? 60,
-        ), 'Hetzner record payload');
-        $url = $this->baseUrl . '/records/' . urlencode($record['id']);
-        $response = $this->hetznerRequest('PUT', $url, $body);
-
-        return $response['code'] >= 200 && $response['code'] < 300;
-    }
-
-    /**
      * @return array<string, mixed>|null
      */
-    private function getRecord($zoneId, $name, $recordType)
+    private function getRrset($zoneId, $name, $recordType)
     {
-        $response = $this->hetznerRequest('GET', $this->baseUrl . '/records?zone_id=' . urlencode($zoneId));
+        $response = $this->hetznerRequest('GET', $this->baseUrl . '/zones/' . urlencode($zoneId) . '/rrsets/' . urlencode($name) . '/' . urlencode($recordType));
+        if ($response['code'] === 404) {
+            return null;
+        }
+
         if ($response['code'] < 200 || $response['code'] >= 300) {
-            throw new RuntimeException('Hetzner record lookup failed with status ' . $response['code']);
+            throw new RuntimeException('Hetzner RRSet lookup failed with status ' . $response['code']);
         }
 
         $data = json_decode($response['body'], true);
-        $expectedName = $name === '@' ? '' : $name;
+        return $data['rrset'] ?? null;
+    }
 
-        foreach (($data['records'] ?? array()) as $record) {
-            if (($record['type'] ?? null) === $recordType && ($record['name'] ?? null) === $expectedName) {
-                return $record;
-            }
-        }
+    /**
+     * @param array<string, mixed> $rrset
+     */
+    private function setRrsetRecords($zoneId, $name, $recordType, $ip, array $rrset)
+    {
+        $body = $this->encodeJson(array(
+            'records' => array(
+                array(
+                    'value' => $ip,
+                    'comment' => '',
+                ),
+            ),
+            'ttl' => $rrset['ttl'] ?? 60,
+        ), 'Hetzner record payload');
+        $url = $this->baseUrl . '/zones/' . urlencode($zoneId) . '/rrsets/' . urlencode($name) . '/' . urlencode($recordType) . '/actions/set_records';
+        $response = $this->hetznerRequest('POST', $url, $body);
 
-        return null;
+        return $response['code'] >= 200 && $response['code'] < 300;
     }
 
     /**
@@ -102,7 +96,7 @@ class Hetzner extends AbstractProvider
             $url,
             array(
                 'Content-Type: application/json',
-                'Auth-API-Token: ' . $this->requireConfigValue('api_token'),
+                'Authorization: Bearer ' . $this->requireConfigValue('api_token'),
             ),
             $body
         );

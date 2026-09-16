@@ -123,9 +123,25 @@ assertThrows(
     'InternetX encode failures should bubble up as runtime exceptions.'
 );
 
+$hetznerCloudRequest = new FakeHttpRequest(array(
+    array('code' => 200, 'body' => json_encode(array('zones' => array(array('name' => 'example.com', 'id' => 'zone-id'))))),
+    array('code' => 200, 'body' => json_encode(array('rrset' => array('name' => 'home', 'type' => 'A', 'ttl' => 60, 'records' => array(array('value' => '198.51.100.1')))))),
+    array('code' => 200, 'body' => json_encode(array('action' => array('status' => 'success')))),
+));
+$hetznerCloudProvider = new Hetzner('example.com', array('api_token' => 'token'), $logger, $hetznerCloudRequest);
+assertSame(true, $hetznerCloudProvider->update('home.example.com', '203.0.113.10'), 'Hetzner should update records through the Cloud API.');
+assertSame('https://api.hetzner.cloud/v1/zones?name=example.com', $hetznerCloudRequest->calls[0]['url'], 'Hetzner zone lookup should use the Cloud API endpoint.');
+assertSame('Authorization: Bearer token', $hetznerCloudRequest->calls[0]['headers'][1], 'Hetzner should authenticate with the bearer token header.');
+assertSame('GET', $hetznerCloudRequest->calls[1]['method'], 'Hetzner should look up the RRSet before updating it.');
+assertSame('https://api.hetzner.cloud/v1/zones/zone-id/rrsets/home/A', $hetznerCloudRequest->calls[1]['url'], 'Hetzner should fetch the existing RRSet through the Cloud API.');
+assertSame('POST', $hetznerCloudRequest->calls[2]['method'], 'Hetzner should use the set_records action to update an RRSet.');
+assertSame('https://api.hetzner.cloud/v1/zones/zone-id/rrsets/home/A/actions/set_records', $hetznerCloudRequest->calls[2]['url'], 'Hetzner should update the RRSet via the Cloud API action endpoint.');
+assertSame(array('value' => '203.0.113.10', 'comment' => ''), json_decode($hetznerCloudRequest->calls[2]['body'], true)['records'][0], 'Hetzner should send a precise A record payload to the Cloud API.');
+
 $hetznerEncodeFailureRequest = new FakeHttpRequest(array(
     array('code' => 200, 'body' => json_encode(array('zones' => array(array('name' => 'example.com', 'id' => 'zone-id'))))),
-    array('code' => 200, 'body' => json_encode(array('records' => array(array('id' => 'record-id', 'type' => 'A', 'name' => 'home', 'ttl' => 60))))),
+    array('code' => 200, 'body' => json_encode(array('rrset' => array('name' => 'home', 'type' => 'A', 'ttl' => 60, 'records' => array(array('value' => '198.51.100.1')))))),
+    array('code' => 200, 'body' => json_encode(array('action' => array('status' => 'success')))),
 ));
 $hetznerEncodeFailure = new FailingEncodeHetzner('example.com', array('api_token' => 'token'), $logger, $hetznerEncodeFailureRequest);
 assertThrows(
