@@ -42,8 +42,8 @@ The script updates an `A` record for IPv4 and an `AAAA` record for IPv6.
 
 ### Hetzner DNS
 
-1. Sign in at `https://dns.hetzner.com/`
-2. Open the user menu and create an API token
+1. Sign in at `https://console.hetzner.cloud/`
+2. Open the Hetzner Cloud Console settings and create an API token
 3. Paste that token into `api_token`
 
 Example:
